@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Image Processing</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">⬡ <span>quantum</span>-image-processing</div>
+  <ul class="nav-links">
+    <li><a href="#overview" class="active">Overview</a></li>
+    <li><a href="#algorithms">Algorithms</a></li>
+    <li><a href="#metrics">Metrics</a></li>
+    <li><a href="#references">References</a></li>
+    <li><span class="nav-badge">Qiskit 2.4</span></li>
+  </ul>
+</nav>
+
+<main>
+  <section class="hero" id="overview">
+    <div class="hero-eyebrow">Quantum Computing · Image Processing · Research Documentation</div>
+    <h1>Quantum <em>Image</em><br>Processing</h1>
+    <p class="hero-sub">
+      End-to-end quantum algorithms for image inversion, image matching,
+      and edge detection. Implemented in Qiskit 2.4 using NEQR encoding
+      and validated against classical baselines with full metrics.
+    </p>
+    <div class="hero-tags">
+      <span class="tag blue">NEQR Encoding</span>
+      <span class="tag blue">Pauli-X Inversion</span>
+      <span class="tag blue">SWAP Test</span>
+      <span class="tag blue">QHED</span>
+      <span class="tag">Python 3.10+</span>
+      <span class="tag">Qiskit Aer</span>
+      <span class="tag green">Statevector Simulation</span>
+    </div>
+  </section>
+
+  <div class="toc scroll-fade">
+    <h3>Table of Contents</h3>
+    <ol>
+      <li><a href="#algorithms">Algorithm Overview</a></li>
+      <li><a href="docs/inversion/index.html">Image Inversion</a></li>
+      <li><a href="docs/matching/index.html">Image Matching</a></li>
+      <li><a href="docs/edge-detection/index.html">Edge Detection</a></li>
+      <li><a href="#metrics">Benchmark Metrics</a></li>
+      <li><a href="#structure">Project Structure</a></li>
+      <li><a href="#references">References</a></li>
+    </ol>
+  </div>
+
+  <section class="section scroll-fade" id="algorithms">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Algorithm <span>Overview</span></h2>
+    </div>
+
+    <p class="lead">
+      All three algorithms share a common quantum image representation — NEQR —
+      and are implemented on Qiskit's statevector and QASM simulators,
+      faithfully modelling future gate-based quantum hardware.
+    </p>
+
+    <div class="figure-card scroll-fade">
+      <img src="assets/images/overview.png" alt="Algorithm Overview">
+      <p class="figure-caption"><strong>Figure 1.</strong> Side-by-side results for all three algorithms on a structured test image: original → inverted → matched → quantum edges → classical edges.</p>
+    </div>
+
+    <div class="algorithm-box scroll-fade">
+      <h4>NEQR — Novel Enhanced Quantum Representation</h4>
+      <p>Every image is encoded as a quantum superposition over all pixel positions:</p>
+      <div class="math">|I⟩ = 1/√(2ⁿ)  Σ_{i,j}  |f(i,j)⟩ ⊗ |i⟩ ⊗ |j⟩
+
+  |f(i,j)⟩  — 8-qubit value register (grayscale intensity)
+  |i⟩        — n_row qubit position register
+  |j⟩        — n_col qubit position register</div>
+      <p>This representation allows quantum parallelism: one circuit evaluation simultaneously processes all 2<sup>2n</sup> pixels.</p>
+    </div>
+
+    <div class="two-col scroll-fade">
+      <div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;">Quantum Advantage Summary</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr><th>Algorithm</th><th>Classical</th><th>Quantum</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Inversion</td><td>O(N)</td><td class="good">O(1) gates</td></tr>
+            <tr><td>Matching</td><td>O(N)</td><td class="good">O(√N)</td></tr>
+            <tr><td>Edge Detection</td><td>O(N·k)</td><td class="good">O(n)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;">Encoding Cost</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr><th>Component</th><th>Qubits</th><th>Gates</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Value register</td><td>8</td><td>—</td></tr>
+            <tr><td>Position (N×N)</td><td>2·log₂N</td><td>O(2ⁿ)</td></tr>
+            <tr><td>SWAP test ancilla</td><td>1</td><td>n+2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem;">
+      <a href="docs/inversion/index.html" style="text-decoration:none;">
+        <div class="source-card">
+          <h4>01 — Image Inversion</h4>
+          <p>Pauli-X gates on the value register flip every pixel in O(1) extra gates.</p>
+          <span>Read docs →</span>
+        </div>
+      </a>
+      <a href="docs/matching/index.html" style="text-decoration:none;">
+        <div class="source-card">
+          <h4>02 — Image Matching</h4>
+          <p>SWAP test estimates quantum fidelity between two amplitude-encoded images.</p>
+          <span>Read docs →</span>
+        </div>
+      </a>
+      <a href="docs/edge-detection/index.html" style="text-decoration:none;">
+        <div class="source-card">
+          <h4>03 — Edge Detection</h4>
+          <p>Quantum cyclic shift on position register computes pixel differences in superposition.</p>
+          <span>Read docs →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="section scroll-fade" id="metrics">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Benchmark <span>Metrics</span></h2>
+    </div>
+
+    <p class="lead">
+      All results are validated against classical ground-truth implementations.
+      Metrics are computed on 8×8 test images simulated with Qiskit Aer's exact statevector backend.
+    </p>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 1rem;">Inversion Quality</h3>
+    <div class="metrics-grid scroll-fade">
+      <div class="metric-card blue">
+        <div class="metric-label">MSE</div>
+        <div class="metric-value">0.0000</div>
+        <div class="metric-sub">vs classical inversion</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="metric-label">PSNR</div>
+        <div class="metric-value">∞ dB</div>
+        <div class="metric-sub">pixel-perfect match</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="metric-label">SSIM</div>
+        <div class="metric-value">1.0000</div>
+        <div class="metric-sub">structural similarity</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Circuit Qubits</div>
+        <div class="metric-value">14</div>
+        <div class="metric-sub">8 val + 3 row + 3 col</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 1rem;">Matching Accuracy</h3>
+    <div class="metrics-grid scroll-fade">
+      <div class="metric-card green">
+        <div class="metric-label">Identical Q-Sim</div>
+        <div class="metric-value">1.000</div>
+        <div class="metric-sub">same image → score 1</div>
+      </div>
+      <div class="metric-card red">
+        <div class="metric-label">Different Q-Sim</div>
+        <div class="metric-value">0.104</div>
+        <div class="metric-sub">distinct images → low</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">SWAP Test Shots</div>
+        <div class="metric-value">8,192</div>
+        <div class="metric-sub">statistical accuracy</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Circuit Depth</div>
+        <div class="metric-value">10</div>
+        <div class="metric-sub">shallow circuit</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 1rem;">Edge Detection Correlation</h3>
+    <div class="metrics-grid scroll-fade">
+      <div class="metric-card blue">
+        <div class="metric-label">Corr (Sobel)</div>
+        <div class="metric-value">0.636</div>
+        <div class="metric-sub">Pearson r vs Sobel</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="metric-label">Corr (Laplacian)</div>
+        <div class="metric-value">0.612</div>
+        <div class="metric-sub">Pearson r vs LoG</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Qubits</div>
+        <div class="metric-value">14</div>
+        <div class="metric-sub">same encoding as inversion</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Image Support</div>
+        <div class="metric-value">Any</div>
+        <div class="metric-sub">auto-resized to 2^n</div>
+      </div>
+    </div>
+
+    <div class="callout info scroll-fade">
+      <span class="callout-icon">ℹ</span>
+      <span>All simulations use Qiskit Aer's exact statevector backend — results are numerically exact, not statistical approximations (except the SWAP test which uses shot-based measurement).</span>
+    </div>
+  </section>
+
+  <section class="section scroll-fade" id="structure">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Project <span>Structure</span></h2>
+    </div>
+
+<pre><code>quantum-image-processing/
+├── src/
+│   ├── encoding.py          <span class="token-cmt"># NEQR encoder — shared by all algorithms</span>
+│   ├── inversion.py         <span class="token-cmt"># Quantum image inversion</span>
+│   ├── matching.py          <span class="token-cmt"># Quantum SWAP-test image matching</span>
+│   ├── edge_detection.py    <span class="token-cmt"># Quantum Hadamard edge detection</span>
+│   └── generate_figures.py  <span class="token-cmt"># Figure export pipeline</span>
+├── docs/
+│   ├── inversion/
+│   │   └── index.html
+│   ├── matching/
+│   │   └── index.html
+│   └── edge-detection/
+│       └── index.html
+├── assets/
+│   ├── css/style.css
+│   ├── js/main.js
+│   └── images/              <span class="token-cmt"># Auto-generated result figures</span>
+└── index.html               <span class="token-cmt"># This page</span></code></pre>
+  </section>
+
+  <section class="section scroll-fade" id="references">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>References</h2>
+    </div>
+    <div class="source-grid">
+      <div class="source-card">
+        <h4>NEQR Representation</h4>
+        <p>Zhang, Y. et al. (2013). NEQR: A Novel Enhanced Quantum Representation of Digital Images.</p>
+        <a href="https://doi.org/10.1007/s11128-013-0567-z">Quantum Inf. Processing →</a>
+      </div>
+      <div class="source-card">
+        <h4>Quantum Edge Detection</h4>
+        <p>Yao, X. et al. (2017). Quantum Image Processing and its Application to Edge Detection.</p>
+        <a href="https://doi.org/10.1103/PhysRevX.7.031041">Phys. Rev. X →</a>
+      </div>
+      <div class="source-card">
+        <h4>SWAP Test</h4>
+        <p>Buhrman, H. et al. (2001). Quantum Fingerprinting. PRL 87, 167902.</p>
+        <a href="https://doi.org/10.1103/PhysRevLett.87.167902">PRL →</a>
+      </div>
+      <div class="source-card">
+        <h4>Qiskit</h4>
+        <p>IBM Quantum (2024). Qiskit: An Open-source Framework for Quantum Computing.</p>
+        <a href="https://qiskit.org">qiskit.org →</a>
+      </div>
+      <div class="source-card">
+        <h4>Amplitude Encoding</h4>
+        <p>Schuld, M. & Petruccione, F. (2021). Machine Learning with Quantum Computers.</p>
+        <a href="https://doi.org/10.1007/978-3-030-83098-4">Springer →</a>
+      </div>
+      <div class="source-card">
+        <h4>Quantum Advantage</h4>
+        <p>Biamonte, J. et al. (2017). Quantum Machine Learning. Nature 549, 195–202.</p>
+        <a href="https://doi.org/10.1038/nature23474">Nature →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  quantum-image-processing · Qiskit 2.4 · Python 3.10+ · MIT License
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

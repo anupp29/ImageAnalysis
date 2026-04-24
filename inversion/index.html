@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Image Inversion — Quantum Image Processing</title>
+<link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">⬡ <a href="../../index.html" style="color:inherit;text-decoration:none;"><span>quantum</span>-image-processing</a></div>
+  <ul class="nav-links">
+    <li><a href="../../index.html">Overview</a></li>
+    <li><a href="#algorithm" class="active">Inversion</a></li>
+    <li><a href="../matching/index.html">Matching</a></li>
+    <li><a href="../edge-detection/index.html">Edge Detection</a></li>
+  </ul>
+</nav>
+
+<main>
+  <section class="hero" id="algorithm">
+    <div class="hero-eyebrow">Algorithm 01 — Image Processing</div>
+    <h1>Quantum Image<br><em>Inversion</em></h1>
+    <p class="hero-sub">
+      Pixel-perfect image inversion achieved in O(1) additional quantum gates
+      via Pauli-X operations on the NEQR value register. Quantum parallelism
+      inverts all pixels simultaneously in a single circuit evaluation.
+    </p>
+    <div class="hero-tags">
+      <span class="tag blue">Pauli-X Gates</span>
+      <span class="tag blue">NEQR Encoding</span>
+      <span class="tag green">MSE = 0.0000</span>
+      <span class="tag green">PSNR = ∞ dB</span>
+      <span class="tag">14 Qubits (8×8)</span>
+    </div>
+  </section>
+
+  <section class="section scroll-fade" id="theory">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Theory &amp; <span>Algorithm</span></h2>
+    </div>
+
+    <p class="lead">
+      Classical image inversion computes f'(i,j) = 255 − f(i,j) for every pixel,
+      requiring O(N) sequential operations. Quantum inversion exploits NEQR superposition
+      to apply this transformation to all pixels with a constant-depth gate sequence.
+    </p>
+
+    <div class="algorithm-box">
+      <h4>Classical Inversion</h4>
+      <p>For each pixel (i,j) in an N×M image:</p>
+      <div class="math">f'(i,j) = 255 − f(i,j)    ∀ (i,j) ∈ [0,N) × [0,M)
+
+Complexity: O(N·M) operations</div>
+    </div>
+
+    <div class="algorithm-box">
+      <h4>Quantum Inversion — Bitwise NOT via Pauli-X</h4>
+      <p>In NEQR, f(i,j) is stored as an 8-bit binary number in the value register.
+      Applying X (bit-flip) to every value qubit computes bitwise NOT:</p>
+      <div class="math">|f(i,j)⟩  →  X⊗8 |f(i,j)⟩  =  |f̄(i,j)⟩  =  |255 − f(i,j)⟩
+
+The superposition state means ALL pixels are inverted simultaneously:
+
+X⊗8 |I⟩  =  1/√N  Σ_{i,j}  |255 − f(i,j)⟩ |i⟩ |j⟩
+
+Additional gate complexity: O(1)  — exactly 8 X gates</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">✓</span>
+      <span>Pauli-X is its own inverse (X² = I), so the inversion is perfectly reversible — a key quantum property with no classical analogue.</span>
+    </div>
+
+    <div class="circuit-diagram scroll-fade">
+<span class="label">NEQR Preparation + Inversion Circuit</span>
+
+<span class="label">val[0]</span> <span class="wire">─┤H├─ ·── ·── ... ─┤X├─</span>  ← <span class="gate">Pauli-X</span> (inversion)
+<span class="label">val[1]</span> <span class="wire">─┤H├─ ·── ·── ... ─┤X├─</span>
+<span class="label">  ...</span>
+<span class="label">val[7]</span> <span class="wire">─┤H├─ ·── ·── ... ─┤X├─</span>
+<span class="label">row[0]</span> <span class="wire">─┤H├─ ──── ──── ...  ───</span>  ← uniform superposition
+<span class="label">  ...</span>
+<span class="label">col[0]</span> <span class="wire">─┤H├─ ──── ──── ...  ───</span>
+<span class="label">  ...</span>
+
+<span class="wire">       └──── NEQR encoding ────┘ └─ 8 gates ─┘</span>
+    </div>
+  </section>
+
+  <section class="section scroll-fade" id="results">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Results &amp; <span>Validation</span></h2>
+    </div>
+
+    <div class="figure-card scroll-fade">
+      <img src="../../assets/images/inversion.png" alt="Inversion Results">
+      <p class="figure-caption">
+        <strong>Figure 1.</strong> From left: original image, quantum-inverted, classical-inverted,
+        absolute pixel difference (all zeros — perfect match), pixel distribution histograms,
+        error distribution, and circuit metrics.
+      </p>
+    </div>
+
+    <div class="metrics-grid scroll-fade">
+      <div class="metric-card blue">
+        <div class="metric-label">MSE</div>
+        <div class="metric-value">0.0000</div>
+        <div class="metric-sub">mean squared error vs classical</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="metric-label">PSNR</div>
+        <div class="metric-value">∞ dB</div>
+        <div class="metric-sub">pixel-perfect reconstruction</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="metric-label">SSIM</div>
+        <div class="metric-value">1.0000</div>
+        <div class="metric-sub">structural similarity index</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Extra Gates</div>
+        <div class="metric-value">8</div>
+        <div class="metric-sub">one X per value qubit</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Qubits (8×8)</div>
+        <div class="metric-value">14</div>
+        <div class="metric-sub">8 val + 3 row + 3 col</div>
+      </div>
+      <div class="metric-card black">
+        <div class="metric-label">Scaling</div>
+        <div class="metric-value">O(1)</div>
+        <div class="metric-sub">independent of image size</div>
+      </div>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Quantum vs Classical Comparison</h3>
+    <table class="comparison-table scroll-fade">
+      <thead>
+        <tr><th>Metric</th><th>Quantum (NEQR + X)</th><th>Classical (f'=255−f)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pixel Error (MSE)</td><td class="good">0.0000</td><td class="good">0.0000 (baseline)</td></tr>
+        <tr><td>PSNR</td><td class="good">∞ dB</td><td class="good">∞ dB (baseline)</td></tr>
+        <tr><td>SSIM</td><td class="good">1.0000</td><td class="good">1.0000 (baseline)</td></tr>
+        <tr><td>Gate Complexity</td><td class="good">O(1) extra gates</td><td class="warn">O(N) operations</td></tr>
+        <tr><td>Reversibility</td><td class="good">Inherently reversible</td><td class="warn">Separate operation</td></tr>
+        <tr><td>Parallelism</td><td class="good">All pixels at once</td><td class="warn">Sequential</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section scroll-fade" id="implementation">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Implementation</h2>
+    </div>
+
+    <p class="lead">The inversion module (<code>src/inversion.py</code>) takes any NumPy image array.
+    Images are automatically resized to the nearest power-of-2 dimensions for NEQR compatibility.</p>
+
+<pre><code><span class="token-kw">import</span> inversion
+<span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
+<span class="token-kw">from</span> PIL <span class="token-kw">import</span> Image
+
+img = np.array(Image.<span class="token-fn">open</span>(<span class="token-str">"photo.jpg"</span>).convert(<span class="token-str">"L"</span>), dtype=np.float64)
+
+result = inversion.<span class="token-fn">run</span>(img)
+
+<span class="token-cmt"># result keys:</span>
+<span class="token-cmt">#   original, quantum, classical  — NumPy arrays (H×W float64)</span>
+<span class="token-cmt">#   mse, psnr, ssim               — quality metrics vs classical</span>
+<span class="token-cmt">#   qubits, depth, gate_count     — circuit properties</span>
+<span class="token-cmt">#   elapsed, image_size           — runtime info</span>
+
+<span class="token-fn">print</span>(<span class="token-str">f"MSE:  {result['mse']:.6f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"PSNR: {result['psnr']:.2f} dB"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"SSIM: {result['ssim']:.6f}"</span>)</code></pre>
+
+    <div class="callout info scroll-fade">
+      <span class="callout-icon">ℹ</span>
+      <span>Images of any size are supported. The encoder automatically determines the required number of qubits: n_qubits = 8 + 2·⌈log₂(max(H,W))⌉. For a 256×256 image this is 8 + 16 = 24 qubits.</span>
+    </div>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Qubit Scaling by Image Size</h3>
+    <table class="comparison-table scroll-fade">
+      <thead>
+        <tr><th>Image Size</th><th>Value Qubits</th><th>Position Qubits</th><th>Total Qubits</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>4×4</td><td>8</td><td>4</td><td>12</td></tr>
+        <tr><td>8×8</td><td>8</td><td>6</td><td>14</td></tr>
+        <tr><td>16×16</td><td>8</td><td>8</td><td>16</td></tr>
+        <tr><td>32×32</td><td>8</td><td>10</td><td>18</td></tr>
+        <tr><td>64×64</td><td>8</td><td>12</td><td>20</td></tr>
+        <tr><td>256×256</td><td>8</td><td>16</td><td>24</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  quantum-image-processing · Algorithm 01: Inversion · Qiskit 2.4
+</footer>
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>
