@@ -1,5 +1,6 @@
 qiskit 
 qiskit-aer 
-numpy pillow 
+numpy 
+pillow 
 matplotlib 
 scipy
