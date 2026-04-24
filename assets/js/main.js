@@ -33,4 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // Accessibility: add aria-label to code blocks based on data-lang attribute
+  document.querySelectorAll('pre[data-lang]').forEach(pre => {
+    const lang = pre.getAttribute('data-lang');
+    if (lang && !pre.hasAttribute('aria-label')) {
+      pre.setAttribute('aria-label', `Code block (${lang})`);
+    }
+  });
 });

@@ -48,9 +48,10 @@ code {
   color: var(--body);
 }
 
+/* Dark code block — Catppuccin Mocha palette */
 pre {
   position: relative;
-  background: #1e1e2e;           /* Catppuccin Mocha base */
+  background: #1e1e2e;
   color: #cdd6f4;
   border-radius: var(--radius-lg);
   padding: 0;
