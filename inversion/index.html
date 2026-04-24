@@ -34,9 +34,10 @@
     <div class="hero-eyebrow">Algorithm 01 — Image Processing</div>
     <h1>Quantum Image<br><em>Inversion</em></h1>
     <p class="hero-sub">
-      Pixel-perfect image inversion achieved in O(1) additional quantum gates
-      via Pauli-X operations on the NEQR value register. Quantum parallelism
-      inverts all pixels simultaneously in a single circuit evaluation — no loops, no conditionals.
+      Pixel-perfect image inversion in $O(1)$ additional quantum gates using Pauli-X
+      operations on the NEQR value register. Because NEQR encodes every pixel into a
+      single quantum superposition, flipping all pixels takes exactly 8 gates —
+      regardless of image size.
     </p>
     <div class="hero-tags">
       <span class="tag blue">Pauli-X Gates</span>
@@ -55,63 +56,70 @@
 
     <p class="lead">
       Classical image inversion computes $f'(i,j) = 255 - f(i,j)$ for every pixel,
-      requiring $O(N)$ sequential operations. Quantum inversion exploits NEQR superposition
-      to apply this transformation to all pixels with a constant-depth gate sequence.
+      requiring $O(N \cdot M)$ sequential subtraction operations. Quantum inversion
+      exploits the NEQR superposition to apply this transformation to all pixels
+      simultaneously — with a constant number of extra gates.
     </p>
 
     <div class="algorithm-box">
-      <h4>Classical Inversion</h4>
-      <p>For each pixel $(i,j)$ in an $N \times M$ image:</p>
+      <h4>Classical Baseline</h4>
+      <p>For each pixel $(i, j)$ in an $N \times M$ image, compute the complement:</p>
       <div class="math-block">
-        $$f'(i,j) = 255 - f(i,j) \qquad \forall\, (i,j) \in [0,N) \times [0,M)$$
-        $$\text{Complexity: } O(N \cdot M) \text{ operations}$$
+        $$f'(i,j) \;=\; 255 - f(i,j), \qquad \forall\, (i,j) \in [0,N) \times [0,M) \tag{1}$$
       </div>
+      <p>Cost: $O(N \cdot M)$ arithmetic operations — one per pixel.</p>
     </div>
 
     <div class="algorithm-box">
       <h4>Quantum Inversion — Bitwise NOT via Pauli-X</h4>
       <p>
-        In NEQR, each pixel intensity $f(i,j)$ is stored as an 8-bit value in the
-        value register. Applying the Pauli-X gate to every value qubit performs a
-        bitwise NOT, which is equivalent to arithmetic complement:
+        In NEQR, each pixel intensity is stored as an 8-bit binary string in the value
+        register. The Pauli-X gate performs a bitwise NOT on a single qubit:
+        $X|0\rangle = |1\rangle,\; X|1\rangle = |0\rangle$.
+        Applied to all 8 value qubits simultaneously, this yields the arithmetic complement
+        of the intensity — precisely the operation we want.
       </p>
       <div class="math-block">
-        $$|f(i,j)\rangle \;\xrightarrow{X^{\otimes 8}}\; |\bar{f}(i,j)\rangle \;=\; |255 - f(i,j)\rangle$$
+        $$X^{\otimes 8}\,|f(i,j)\rangle \;=\; \bigl|\overline{f}(i,j)\bigr\rangle \;=\; |255 - f(i,j)\rangle \tag{2}$$
       </div>
       <p>
-        Because the NEQR state encodes <em>all</em> pixels in superposition, a single application
-        of $X^{\otimes 8}$ inverts every pixel simultaneously:
+        Because the NEQR state $|I\rangle$ encodes <em>all</em> pixels in superposition,
+        a single application of $X^{\otimes 8}$ to the value register inverts every pixel at once:
       </p>
       <div class="math-block">
-        $$X^{\otimes 8}\,|I\rangle \;=\; \frac{1}{\sqrt{N}} \sum_{i,j} |255 - f(i,j)\rangle \otimes |i\rangle \otimes |j\rangle$$
-        $$\text{Additional gate complexity: } O(1) \text{ — exactly 8 X gates}$$
+        $$X^{\otimes 8}\,|I\rangle \;=\; \frac{1}{\sqrt{N}} \sum_{i,j} \bigl|255 - f(i,j)\bigr\rangle \otimes |i\rangle \otimes |j\rangle \tag{3}$$
       </div>
+      <p>
+        The inversion adds exactly 8 Pauli-X gates to the circuit — a constant overhead
+        completely independent of image resolution.
+      </p>
     </div>
 
     <div class="callout tip">
       <span class="callout-icon">✓</span>
-      <span>Pauli-X is its own inverse ($X^2 = I$), so the inversion is perfectly reversible — a key quantum property with no classical analogue.</span>
+      <span>Pauli-X is its own inverse ($X^2 = I$), so the inversion is perfectly reversible
+      at zero additional cost — a key quantum property with no classical analogue.</span>
     </div>
 
     <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Circuit Diagram</h3>
     <div class="circuit-img-card scroll-fade">
       <img src="../assets/images/circuit_inversion.png"
-           alt="Quantum Inversion Circuit — NEQR encoding + Pauli-X gates">
+           alt="Quantum Inversion Circuit — NEQR encoding + Pauli-X gates on value register">
       <p class="circuit-caption">
-        Qiskit circuit for NEQR-encoded image inversion on an 8×8 image (14 qubits).
-        The first barrier separates the NEQR position superposition layer from the
-        8-gate Pauli-X inversion block applied to the value register.
+        Qiskit circuit for NEQR-encoded image inversion on a 2×2 test image (10 qubits).
+        Hadamard gates prepare the position registers in uniform superposition; CCX (Toffoli)
+        gates encode the non-zero pixel; the barrier separates encoding from the 8 Pauli-X
+        inversion gates applied to the value register <code>val[0..7]</code>.
       </p>
     </div>
 
-    <div class="circuit-diagram scroll-fade">
-<span class="label">Conceptual Layout — NEQR Preparation + Inversion</span>
-
-<span class="label">val[0..7]</span> <span class="wire">─┤H├─ ···(NEQR encode)···</span><span class="gate">─┤X├─</span>  ← <span class="gate">Pauli-X</span> inversion
-<span class="label">row[0..2]</span> <span class="wire">─┤H├─ ───────────────────────</span>  ← uniform superposition
-<span class="label">col[0..2]</span> <span class="wire">─┤H├─ ───────────────────────</span>
-
-<span class="wire">           └─── NEQR encoding ───┘  └── 8 X gates ──┘</span>
+    <div class="algorithm-box scroll-fade">
+      <h4>Conceptual Layout — NEQR Preparation + Inversion</h4>
+      <div class="circuit-diagram">
+<span class="label">val[0..7]</span> <span class="wire">─────(NEQR encode)──────</span><span class="gate">─┤X├─</span>  <span class="token-cmt">← Pauli-X inversion (×8)</span>
+<span class="label">row[0..n]</span> <span class="wire">─┤H├─ ───────────────────</span>  <span class="token-cmt">← uniform superposition</span>
+<span class="label">col[0..n]</span> <span class="wire">─┤H├─ ───────────────────</span>
+<span class="wire">           └──── NEQR encoding ────┘  └─── 8 X gates ───┘</span></div>
     </div>
   </section>
 
@@ -121,12 +129,19 @@
       <h2>Results &amp; <span>Validation</span></h2>
     </div>
 
+    <p class="lead">
+      The quantum output is compared pixel-by-pixel against the classical formula
+      $f' = 255 - f$. On Qiskit's exact statevector simulator, the two are numerically
+      indistinguishable — MSE is zero and PSNR is unbounded.
+    </p>
+
     <div class="figure-card scroll-fade">
       <img src="../assets/images/inversion.png" alt="Inversion Results">
       <p class="figure-caption">
-        <strong>Figure 1.</strong> From left: original image, quantum-inverted, classical-inverted,
-        absolute pixel difference (all zeros — perfect match), pixel distribution histograms,
-        error distribution, and circuit metrics.
+        <strong>Figure 1.</strong> From left: original image, quantum-inverted result,
+        classical-inverted result, absolute pixel difference (all zeros — perfect agreement),
+        pixel intensity histograms, error distribution, and circuit metrics panel.
+        The difference image is uniformly black, confirming exact bitwise equivalence.
       </p>
     </div>
 
@@ -166,15 +181,15 @@
     <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Quantum vs Classical Comparison</h3>
     <table class="comparison-table scroll-fade">
       <thead>
-        <tr><th>Metric</th><th>Quantum (NEQR + X)</th><th>Classical ($f'=255-f$)</th></tr>
+        <tr><th>Metric</th><th>Quantum (NEQR + $X^{\otimes 8}$)</th><th>Classical ($f' = 255 - f$)</th></tr>
       </thead>
       <tbody>
         <tr><td>Pixel Error (MSE)</td><td class="good">0.0000</td><td class="good">0.0000 (baseline)</td></tr>
         <tr><td>PSNR</td><td class="good">∞ dB</td><td class="good">∞ dB (baseline)</td></tr>
         <tr><td>SSIM</td><td class="good">1.0000</td><td class="good">1.0000 (baseline)</td></tr>
-        <tr><td>Gate Complexity</td><td class="good">$O(1)$ extra gates</td><td class="warn">$O(N)$ operations</td></tr>
-        <tr><td>Reversibility</td><td class="good">Inherently reversible</td><td class="warn">Separate operation</td></tr>
-        <tr><td>Parallelism</td><td class="good">All pixels at once</td><td class="warn">Sequential</td></tr>
+        <tr><td>Gate Complexity</td><td class="good">$O(1)$ — exactly 8 X gates</td><td class="warn">$O(N)$ operations</td></tr>
+        <tr><td>Reversibility</td><td class="good">Inherent ($X^2 = I$)</td><td class="warn">Requires a separate pass</td></tr>
+        <tr><td>Parallelism</td><td class="good">All pixels simultaneously</td><td class="warn">Pixel by pixel</td></tr>
       </tbody>
     </table>
   </section>
@@ -186,23 +201,25 @@
     </div>
 
     <p class="lead">
-      The inversion module (<code>src/inversion.py</code>) accepts any NumPy image array.
-      Images are automatically resized to the nearest power-of-2 dimensions for NEQR compatibility.
+      The inversion module (<code>src/inversion.py</code>) accepts any NumPy image array
+      and automatically resizes it to the nearest power-of-2 dimensions required by NEQR.
+      Grayscale images are expected; colour images should be converted before passing.
     </p>
 
 <pre data-lang="python"><code><span class="token-kw">import</span> inversion
 <span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
 <span class="token-kw">from</span> PIL <span class="token-kw">import</span> Image
 
-img = np.array(Image.<span class="token-fn">open</span>(<span class="token-str">"photo.jpg"</span>).convert(<span class="token-str">"L"</span>), dtype=np.float64)
+<span class="token-cmt"># Load any grayscale image</span>
+img = np.<span class="token-fn">array</span>(Image.<span class="token-fn">open</span>(<span class="token-str">"photo.jpg"</span>).<span class="token-fn">convert</span>(<span class="token-str">"L"</span>), dtype=np.float64)
 
 result = inversion.<span class="token-fn">run</span>(img)
 
-<span class="token-cmt"># result keys:</span>
-<span class="token-cmt">#   original, quantum, classical  — NumPy arrays (H×W float64)</span>
+<span class="token-cmt"># result is a dict with the following keys:</span>
+<span class="token-cmt">#   original, quantum, classical  — NumPy arrays (H×W, float64)</span>
 <span class="token-cmt">#   mse, psnr, ssim               — quality metrics vs classical</span>
-<span class="token-cmt">#   qubits, depth, gate_count     — circuit properties</span>
-<span class="token-cmt">#   elapsed, image_size           — runtime info</span>
+<span class="token-cmt">#   qubits, depth, gate_count     — circuit resource counts</span>
+<span class="token-cmt">#   elapsed, image_size           — runtime and dimensions</span>
 
 <span class="token-fn">print</span>(<span class="token-str">f"MSE:  {result[<span class="token-str">'mse'</span>]:.6f}"</span>)
 <span class="token-fn">print</span>(<span class="token-str">f"PSNR: {result[<span class="token-str">'psnr'</span>]:.2f} dB"</span>)
@@ -213,14 +230,15 @@ result = inversion.<span class="token-fn">run</span>(img)
       <span>
         Images of any size are supported. The encoder automatically determines the required
         number of qubits: $n_\text{qubits} = 8 + 2\lceil\log_2(\max(H,W))\rceil$.
-        For a $256 \times 256$ image this gives $8 + 16 = 24$ qubits.
+        For a $256 \times 256$ image this gives $8 + 16 = 24$ qubits — the qubit count
+        grows logarithmically, not linearly, with image area.
       </span>
     </div>
 
     <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Qubit Scaling by Image Size</h3>
     <table class="comparison-table scroll-fade">
       <thead>
-        <tr><th>Image Size</th><th>Value Qubits</th><th>Position Qubits</th><th>Total Qubits</th></tr>
+        <tr><th>Image Size</th><th>Value Qubits</th><th>Position Qubits</th><th>Total</th></tr>
       </thead>
       <tbody>
         <tr><td>4×4</td><td>8</td><td>4</td><td>12</td></tr>
@@ -235,7 +253,7 @@ result = inversion.<span class="token-fn">run</span>(img)
 </main>
 
 <footer>
-  quantum-image-processing · Algorithm 01: Inversion · Qiskit 2.4
+  quantum-image-processing &nbsp;·&nbsp; Algorithm 01: Inversion &nbsp;·&nbsp; Qiskit 2.4
 </footer>
 <script src="../assets/js/main.js"></script>
 </body>

@@ -36,7 +36,8 @@
     <p class="hero-sub">
       Quantum Hadamard Edge Detection (QHED) using NEQR encoding and a quantum cyclic
       shift operator. Horizontal and vertical pixel differences are computed in superposition
-      across all pixels simultaneously, delivering $O(n)$ gate complexity vs $O(N \cdot k)$ classical.
+      across all positions simultaneously, giving $O(n)$ gate complexity vs $O(N \cdot k)$
+      for classical convolution-based methods.
     </p>
     <div class="hero-tags">
       <span class="tag blue">QHED Algorithm</span>
@@ -55,49 +56,63 @@
     </div>
 
     <p class="lead">
-      Classical edge detection (Sobel, Canny, Laplacian-of-Gaussian) convolves every pixel
-      with a kernel, requiring $O(N \cdot k)$ operations for image size $N$ and kernel size $k$.
-      The quantum approach computes all pixel differences in a single circuit evaluation
-      by leveraging NEQR superposition and a quantum cyclic shift on the position register.
+      Classical edge detectors — Sobel, Canny, Laplacian-of-Gaussian — convolve every
+      pixel with a kernel, requiring $O(N \cdot k)$ operations for image size $N$ and
+      kernel size $k$. The quantum approach computes <em>all</em> pixel differences in a
+      single circuit pass by exploiting NEQR superposition and a quantum cyclic shift on
+      the position register.
     </p>
 
     <div class="algorithm-box">
       <h4>NEQR Quantum Image State</h4>
-      <p>The input image is encoded in the NEQR basis as a superposition over all pixel positions:</p>
+      <p>
+        The input image is encoded as a superposition over all pixel positions in the
+        NEQR basis:
+      </p>
       <div class="math-block">
-        $$|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i=0}^{2^n - 1} |f(i)\rangle \otimes |i\rangle$$
+        $$|I\rangle \;=\; \frac{1}{\sqrt{2^n}} \sum_{i=0}^{2^n - 1} |f(i)\rangle \otimes |i\rangle \tag{1}$$
       </div>
-      <p>where $|f(i)\rangle$ is the 8-qubit value register encoding grayscale intensity $[0,\,255]$,
-      and $|i\rangle$ spans the position register ($n_\text{row} + n_\text{col}$ qubits).</p>
+      <p>
+        Here $|f(i)\rangle$ is the 8-qubit value register encoding grayscale intensity
+        $\in [0, 255]$, and $|i\rangle$ spans the position register ($n_\text{row} + n_\text{col}$ qubits).
+      </p>
     </div>
 
     <div class="algorithm-box">
       <h4>Quantum Cyclic Shift Operator</h4>
       <p>
-        The position register is incremented modulo $2^n$ using a quantum ripple-carry adder
-        (multi-controlled X gates). This maps each pixel at position $(i, j)$ to $(i, j+1)$
-        in superposition — effectively a cyclic horizontal shift of the entire image:
+        The position register is incremented modulo $2^n$ using a quantum ripple-carry
+        adder (multi-controlled X gates). This shifts every pixel at $(i, j)$ to $(i, j+1)$
+        <em>in superposition</em> — effectively a cyclic horizontal shift of the whole image:
       </p>
       <div class="math-block">
-        $$S_\text{col}\,|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |i\rangle \otimes |(j+1) \bmod 2^{n_\text{col}}\rangle$$
-        $$S_\text{row}\,|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |(i+1) \bmod 2^{n_\text{row}}\rangle \otimes |j\rangle$$
+        $$S_\text{col}\,|I\rangle \;=\; \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |i\rangle \otimes \bigl|(j+1) \bmod 2^{n_c}\bigr\rangle \tag{2}$$
       </div>
-      <p>Gate count for cyclic shift on $k$ qubits:
-        $\displaystyle\sum_{i=1}^{k} C^i\text{-}X = \frac{k(k+1)}{2}$ gates.
-        For $k = 3$ (8×8 image): 6 multi-controlled gates per axis.
+      <div class="math-block">
+        $$S_\text{row}\,|I\rangle \;=\; \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes \bigl|(i+1) \bmod 2^{n_r}\bigr\rangle \otimes |j\rangle \tag{3}$$
+      </div>
+      <p>
+        Gate count for cyclic shift on $k$ qubits:
+        $\displaystyle G_k = \sum_{i=1}^{k} C^i\text{-}X = \frac{k(k+1)}{2}$ gates.
+        For an 8×8 image ($k = 3$): exactly 6 multi-controlled gates per axis.
       </p>
     </div>
 
     <div class="algorithm-box">
       <h4>Edge Extraction via Pixel Difference</h4>
       <p>
-        After decoding both the original and shifted statevectors, pixel differences give
-        the edge response along each axis. The combined edge map is the Euclidean norm:
+        Decoding both the original and the shifted statevectors gives two pixel grids.
+        Their difference is the first-order finite-difference approximation to the image
+        gradient — an edge map. The combined magnitude is the Euclidean gradient norm:
       </p>
       <div class="math-block">
-        $$h_\text{edge}(i,j) = \bigl|f(i,j) - f(i,\,j+1)\bigr| \qquad \text{(horizontal edges)}$$
-        $$v_\text{edge}(i,j) = \bigl|f(i,j) - f(i+1,\,j)\bigr| \qquad \text{(vertical edges)}$$
-        $$\text{combined}(i,j) = \sqrt{h_\text{edge}^2 + v_\text{edge}^2} \qquad \text{normalised to } [0,\,255]$$
+        $$h_\text{edge}(i,j) \;=\; \bigl|f(i,j) - f(i,\,j+1)\bigr| \qquad \text{(horizontal)} \tag{4}$$
+      </div>
+      <div class="math-block">
+        $$v_\text{edge}(i,j) \;=\; \bigl|f(i,j) - f(i+1,\,j)\bigr| \qquad \text{(vertical)} \tag{5}$$
+      </div>
+      <div class="math-block">
+        $$\text{combined}(i,j) \;=\; \sqrt{h_\text{edge}^2 + v_\text{edge}^2},\quad \text{normalised to } [0,255] \tag{6}$$
       </div>
     </div>
 
@@ -105,21 +120,21 @@
       <span class="callout-icon">✓</span>
       <span>
         This approach is inspired by the Quantum Hadamard Edge Detection (QHED) framework
-        (Yao et al., 2017, <em>Phys. Rev. X</em> 7, 031041), which uses quantum difference
-        operators derived from the Hadamard transform to detect intensity discontinuities
-        across all pixels in a single quantum circuit evaluation.
+        (Yao et al., 2017, <em>Phys. Rev. X</em> 7, 031041), which exploits quantum difference
+        operators to detect intensity discontinuities across all pixels in a single
+        circuit evaluation.
       </span>
     </div>
 
     <div class="two-col scroll-fade">
       <div>
         <div class="algorithm-box">
-          <h4>Quantum Algorithm Steps</h4>
-          <p>1. Encode image with NEQR → $|I\rangle$</p>
-          <p>2. Run statevector sim → decode original pixel grid</p>
-          <p>3. Apply $S_\text{col}$ → decode shifted_h</p>
-          <p>4. Apply $S_\text{row}$ → decode shifted_v</p>
-          <p>5. Compute $h_\text{edge}$, $v_\text{edge}$, combined gradient map</p>
+          <h4>Algorithm Steps</h4>
+          <p>1. Encode image in NEQR → $|I\rangle$</p>
+          <p>2. Statevector sim → decode original pixel grid</p>
+          <p>3. Apply $S_\text{col}$ → decode horizontal shift</p>
+          <p>4. Apply $S_\text{row}$ → decode vertical shift</p>
+          <p>5. Compute $h_\text{edge}$, $v_\text{edge}$, and combined gradient map</p>
           <p>6. Normalise and compare vs Sobel / Laplacian</p>
         </div>
       </div>
@@ -127,10 +142,10 @@
         <div class="algorithm-box">
           <h4>Complexity Analysis</h4>
           <p>NEQR encoding: $O(2^n)$ gates (one-time cost)</p>
-          <p>Cyclic shift: $O(n^2)$ gates, $n = \log_2 N$ per axis</p>
+          <p>Cyclic shift per axis: $O(n^2)$ gates, $n = \log_2 N$</p>
           <p>Statevector decode: $O(2^n)$ classical post-processing</p>
-          <p>Classical Sobel: $O(N \cdot k)$ — $N$ pixels, $k$ kernel</p>
-          <p><strong>Quantum advantage scales with $n = \log_2 N$</strong></p>
+          <p>Classical Sobel: $O(N \cdot k)$ — sequential per pixel</p>
+          <p><strong>Quantum shift circuit: $O(\log_2^2 N)$ — logarithmic scaling</strong></p>
         </div>
       </div>
     </div>
@@ -143,39 +158,41 @@
     </div>
 
     <p class="lead">
-      The full circuit consists of the NEQR encoding layer followed by the quantum cyclic
-      shift applied to either the column or row position register. Two separate circuit
-      evaluations produce the horizontal and vertical edge maps.
+      The full circuit is the NEQR encoding layer followed by the quantum cyclic shift
+      applied to either the column or row register. Two separate circuit evaluations
+      produce the horizontal and vertical edge maps independently.
     </p>
 
     <div class="circuit-img-card scroll-fade">
       <img src="../assets/images/circuit_edge.png"
-           alt="Quantum Edge Detection Circuit — NEQR encoding + cyclic shift on col and row registers">
+           alt="Quantum Edge Detection Circuit — NEQR encoding + cyclic shift on col register">
       <p class="circuit-caption">
-        Qiskit edge-detection circuit on an 8×8 image (14 qubits). The NEQR layer places the
-        position registers in superposition; the two cyclic-shift blocks (one per axis) implement
-        the quantum ripple-carry increment modulo $2^k$.
+        Qiskit edge-detection circuit (12 qubits, 4×4 representative image). Hadamard gates
+        prepare the position registers in uniform superposition; the NEQR block encodes pixel
+        intensities via multi-controlled X gates; the cyclic shift block — a CX followed by
+        an X — implements $|\,b_1 b_0\rangle \to |(b_1 b_0 + 1) \bmod 4\rangle$ on the
+        column register. Repeating with row register gives the vertical edge map.
       </p>
     </div>
 
-    <div class="circuit-diagram scroll-fade">
-<span class="label">Conceptual Layout — NEQR + Horizontal Cyclic Shift (column axis)</span>
-
-<span class="label">val[0..7]</span> <span class="wire">─┤H├─ ···(NEQR)···  ──────────────────────</span>  ← value register
-<span class="label">row[0..2]</span> <span class="wire">─┤H├─ ───────────  ──────────────────────</span>  ← row position
-<span class="label">col[0]  </span> <span class="wire">─┤H├─ ───────────</span><span class="gate">─┤X├─</span><span class="wire">──────────────</span>  ← LSB always flips
-<span class="label">col[1]  </span> <span class="wire">─┤H├─ ─────────── ──●──</span><span class="gate">─┤X├─</span><span class="wire">────────</span>  ← MCX(col[0], col[1])
-<span class="label">col[2]  </span> <span class="wire">─┤H├─ ─────────── ──●───●──</span><span class="gate">─┤X├─</span><span class="wire">────</span>  ← MCX(col[0:2], col[2])
-
-<span class="wire">           └─── NEQR encoding ───┘  └─── cyclic +1 col ───┘</span>
+    <div class="algorithm-box scroll-fade">
+      <h4>Conceptual Layout — NEQR + Horizontal Cyclic Shift</h4>
+      <div class="circuit-diagram">
+<span class="label">val[0..7]</span> <span class="wire">─────(NEQR encode)──────────────</span>  <span class="token-cmt">← value register (unchanged)</span>
+<span class="label">row[0..n]</span> <span class="wire">─┤H├─ ───────────────────────────</span>  <span class="token-cmt">← row position (unchanged)</span>
+<span class="label">col[0]  </span> <span class="wire">─┤H├─ ──────────</span><span class="gate">─┤X├─</span><span class="wire">───────────</span>  <span class="token-cmt">← LSB always flips</span>
+<span class="label">col[1]  </span> <span class="wire">─┤H├─ ───────── ──●──</span><span class="gate">─┤X├─</span><span class="wire">─────</span>  <span class="token-cmt">← CX(col[0], col[1])</span>
+<span class="label">col[2]  </span> <span class="wire">─┤H├─ ─────────  ──●───●──</span><span class="gate">─┤X├─</span>  <span class="token-cmt">← MCX(col[0:2], col[2])</span>
+<span class="wire">           └── NEQR encoding ──┘  └─── cyclic +1 col ───┘</span></div>
     </div>
 
     <div class="callout info scroll-fade">
       <span class="callout-icon">ℹ</span>
       <span>
         The cyclic increment is a quantum ripple-carry adder with wraparound. For a 3-qubit
-        register it implements $|b_2 b_1 b_0\rangle \to |(b_2 b_1 b_0 + 1) \bmod 8\rangle$.
-        The circuit uses multi-controlled Toffoli (MCX) gates, each decomposable into $O(k^2)$ elementary gates.
+        register it maps $|b_2 b_1 b_0\rangle \to |(b_2 b_1 b_0 + 1) \bmod 8\rangle$.
+        Each multi-controlled X (MCX) gate is decomposable into $O(k^2)$ elementary
+        single- and two-qubit gates on real hardware.
       </span>
     </div>
 
@@ -185,7 +202,7 @@
         <tr><th>Component</th><th>Gate Type</th><th>Count (8×8)</th><th>Scales as</th></tr>
       </thead>
       <tbody>
-        <tr><td>NEQR value prep</td><td>H + CCNOT</td><td>8 + O(64)</td><td>$O(2^n)$</td></tr>
+        <tr><td>NEQR value prep</td><td>H + CCNOT</td><td>8 + $O(64)$</td><td>$O(2^n)$</td></tr>
         <tr><td>NEQR position prep</td><td>H</td><td>6</td><td>$O(n)$</td></tr>
         <tr><td>Cyclic shift (col)</td><td>MCX</td><td>6</td><td>$O(n^2)$</td></tr>
         <tr><td>Cyclic shift (row)</td><td>MCX</td><td>6</td><td>$O(n^2)$</td></tr>
@@ -201,9 +218,10 @@
     </div>
 
     <p class="lead">
-      The quantum edge map is validated by comparing its pixel-wise correlation against
-      two classical baselines: Sobel gradient magnitude and Laplacian-of-Gaussian (LoG).
-      All three algorithms are applied to the same 8×8 NEQR test image.
+      The quantum edge map is validated against two classical baselines — Sobel gradient
+      magnitude and Laplacian-of-Gaussian (LoG) — applied to the same 8×8 NEQR test
+      image. Pearson correlation above 0.6 confirms the quantum operator correctly
+      identifies intensity discontinuities.
     </p>
 
     <div class="figure-card scroll-fade">
@@ -214,9 +232,9 @@
       </div>
       <p class="figure-caption">
         <strong>Figure 1.</strong> From left: original image, quantum horizontal edge map,
-        quantum vertical edge map, combined quantum edge magnitude, classical Sobel,
-        classical Laplacian-of-Gaussian. The quantum output visually tracks both classical
-        methods, confirmed by Pearson correlations above 0.6.
+        quantum vertical edge map, combined quantum gradient magnitude, classical Sobel,
+        classical Laplacian-of-Gaussian. The row-midpoint profile and scatter plot confirm
+        strong correlation between quantum and classical outputs in the image interior.
       </p>
     </div>
 
@@ -224,12 +242,12 @@
       <div class="metric-card blue">
         <div class="metric-label">Corr vs Sobel</div>
         <div class="metric-value">0.636</div>
-        <div class="metric-sub">Pearson r (quantum vs Sobel)</div>
+        <div class="metric-sub">Pearson $r$ (quantum vs Sobel)</div>
       </div>
       <div class="metric-card blue">
         <div class="metric-label">Corr vs Laplacian</div>
         <div class="metric-value">0.612</div>
-        <div class="metric-sub">Pearson r (quantum vs LoG)</div>
+        <div class="metric-sub">Pearson $r$ (quantum vs LoG)</div>
       </div>
       <div class="metric-card black">
         <div class="metric-label">Qubits (8×8)</div>
@@ -243,7 +261,7 @@
       </div>
       <div class="metric-card green">
         <div class="metric-label">Gate Complexity</div>
-        <div class="metric-value">O(n)</div>
+        <div class="metric-value">O(n²)</div>
         <div class="metric-sub">shift circuit; $n = \log_2 N$</div>
       </div>
       <div class="metric-card green">
@@ -253,7 +271,7 @@
       </div>
     </div>
 
-    <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Quantum vs Classical Edge Detection</h3>
+    <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Quantum vs Classical Comparison</h3>
     <table class="comparison-table scroll-fade">
       <thead>
         <tr><th>Property</th><th>Quantum (QHED)</th><th>Sobel</th><th>Laplacian (LoG)</th></tr>
@@ -261,7 +279,7 @@
       <tbody>
         <tr>
           <td>Complexity</td>
-          <td class="good">$O(n)$ shift gates</td>
+          <td class="good">$O(n^2)$ shift gates</td>
           <td>$O(N \cdot 9)$</td>
           <td>$O(N \cdot 25)$</td>
         </tr>
@@ -287,12 +305,12 @@
           <td>Corr vs Sobel</td>
           <td class="good">0.636</td>
           <td class="good">1.000 (self)</td>
-          <td>0.81 (typical)</td>
+          <td>~0.81 (typical)</td>
         </tr>
         <tr>
           <td>Corr vs Laplacian</td>
           <td class="good">0.612</td>
-          <td>0.81 (typical)</td>
+          <td>~0.81 (typical)</td>
           <td class="good">1.000 (self)</td>
         </tr>
         <tr>
@@ -307,10 +325,11 @@
     <div class="callout info scroll-fade">
       <span class="callout-icon">ℹ</span>
       <span>
-        Correlation values of 0.6+ confirm the quantum cyclic-difference operator correctly
-        identifies intensity discontinuities. The gap vs classical (which reaches ~0.8) is
-        expected: the quantum operator uses a cyclic wrap-around difference (not a padded
-        convolution), producing different boundary behaviour while preserving interior edges.
+        Pearson correlations above 0.6 confirm that the quantum cyclic-difference operator
+        correctly identifies intensity discontinuities. The gap relative to classical (which
+        self-correlates at 1.0) is expected: the quantum operator uses a cyclic wrap-around
+        difference rather than a padded convolution, so boundary pixels differ. Interior
+        edges match closely.
       </span>
     </div>
   </section>
@@ -322,16 +341,17 @@
     </div>
 
     <p class="lead">
-      The edge detection module (<code>src/edge_detection.py</code>) accepts any NumPy grayscale
-      image. It automatically pads to the nearest power-of-2 dimensions for NEQR compatibility,
-      then runs three statevector simulations (original, column-shifted, row-shifted).
+      The edge detection module (<code>src/edge_detection.py</code>) accepts any NumPy
+      grayscale image. It runs three statevector simulations — original, column-shifted,
+      and row-shifted — and returns both the quantum edge maps and classical baselines
+      in a single result dictionary.
     </p>
 
 <pre data-lang="python"><code><span class="token-kw">import</span> edge_detection
 <span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
 <span class="token-kw">from</span> PIL <span class="token-kw">import</span> Image
 
-img = np.array(Image.<span class="token-fn">open</span>(<span class="token-str">"photo.jpg"</span>).convert(<span class="token-str">"L"</span>), dtype=np.float64)
+img = np.<span class="token-fn">array</span>(Image.<span class="token-fn">open</span>(<span class="token-str">"photo.jpg"</span>).<span class="token-fn">convert</span>(<span class="token-str">"L"</span>), dtype=np.float64)
 
 result = edge_detection.<span class="token-fn">run</span>(img)
 
@@ -344,8 +364,7 @@ result = edge_detection.<span class="token-fn">run</span>(img)
 <span class="token-cmt">#   laplacian      — classical Laplacian-of-Gaussian edge map</span>
 <span class="token-cmt">#   corr_sobel     — Pearson r: quantum vs Sobel</span>
 <span class="token-cmt">#   corr_laplacian — Pearson r: quantum vs LoG</span>
-<span class="token-cmt">#   qubits         — total qubits in circuit</span>
-<span class="token-cmt">#   elapsed        — runtime in seconds</span>
+<span class="token-cmt">#   qubits, depth, gate_count, elapsed, image_size</span>
 
 <span class="token-fn">print</span>(<span class="token-str">f"Corr vs Sobel:     {result[<span class="token-str">'corr_sobel'</span>]:.4f}"</span>)
 <span class="token-fn">print</span>(<span class="token-str">f"Corr vs Laplacian: {result[<span class="token-str">'corr_laplacian'</span>]:.4f}"</span>)
@@ -354,15 +373,15 @@ result = edge_detection.<span class="token-fn">run</span>(img)
 
     <div class="two-col scroll-fade">
       <div>
-        <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Cyclic Shift — Core Subroutine</h3>
+        <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Cyclic Shift Subroutine</h3>
 <pre data-lang="python"><code><span class="token-kw">def</span> <span class="token-fn">_cyclic_increment</span>(qc, reg):
-    <span class="token-cmt"># Quantum ripple-carry adder (+1 mod 2^k)</span>
+    <span class="token-cmt"># Ripple-carry adder: |b⟩ → |(b+1) mod 2^k⟩</span>
     n = <span class="token-fn">len</span>(reg)
     <span class="token-kw">for</span> i <span class="token-kw">in</span> <span class="token-fn">range</span>(n - <span class="token-num">1</span>, -<span class="token-num">1</span>, -<span class="token-num">1</span>):
         <span class="token-kw">if</span> i == <span class="token-num">0</span>:
-            qc.<span class="token-fn">x</span>(reg[<span class="token-num">0</span>])       <span class="token-cmt"># LSB always flips</span>
+            qc.<span class="token-fn">x</span>(reg[<span class="token-num">0</span>])        <span class="token-cmt"># LSB always flips</span>
         <span class="token-kw">else</span>:
-            qc.<span class="token-fn">mcx</span>(reg[:i], reg[i])  <span class="token-cmt"># carry</span></code></pre>
+            qc.<span class="token-fn">mcx</span>(reg[:i], reg[i])  <span class="token-cmt"># carry propagation</span></code></pre>
       </div>
       <div>
         <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Running Both Axes</h3>
@@ -386,16 +405,16 @@ result = edge_detection.<span class="token-fn">run</span>(img)
       <span class="callout-icon">ℹ</span>
       <span>
         Images of any size are accepted. The NEQR encoder automatically pads to the nearest
-        power-of-2 square: e.g. a $100 \times 120$ image becomes $128 \times 128$.
-        Qubit count grows logarithmically — a $256 \times 256$ image uses $8 + 2 \cdot 8 = 24$ qubits,
-        while a $1024 \times 1024$ image requires only 28 qubits.
+        power-of-2 square — e.g. a $100 \times 120$ image becomes $128 \times 128$.
+        Qubit count grows logarithmically: a $256 \times 256$ image uses
+        $8 + 2 \times 8 = 24$ qubits; a $1024 \times 1024$ image needs only 28.
       </span>
     </div>
 
     <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Qubit Scaling by Image Size</h3>
     <table class="comparison-table scroll-fade">
       <thead>
-        <tr><th>Image Size</th><th>Value Qubits</th><th>Row Qubits</th><th>Col Qubits</th><th>Total</th><th>Shift Gates / Axis</th></tr>
+        <tr><th>Image Size</th><th>Val Qubits</th><th>Row Qubits</th><th>Col Qubits</th><th>Total</th><th>Shift Gates / Axis</th></tr>
       </thead>
       <tbody>
         <tr><td>4×4</td><td>8</td><td>2</td><td>2</td><td>12</td><td>3</td></tr>
@@ -416,9 +435,9 @@ result = edge_detection.<span class="token-fn">run</span>(img)
     </div>
 
     <p class="lead">
-      Quantum image processing emerged as a field in the 2010s, exploiting quantum
-      superposition to process all pixels in a single circuit evaluation — an exponential
-      parallelism advantage over classical sequential processing.
+      Quantum image processing emerged as a research field in the 2010s, offering
+      exponential parallelism by encoding entire images into a single quantum superposition.
+      Edge detection was one of the first operations shown to benefit from this approach.
     </p>
 
     <div class="two-col scroll-fade">
@@ -427,15 +446,16 @@ result = edge_detection.<span class="token-fn">run</span>(img)
           <h4>Why Quantum Edge Detection?</h4>
           <p>
             Edges carry the most perceptually salient information in an image.
-            Classical edge detectors (Sobel, Canny, LoG) are computationally expensive
-            for high-resolution images — $O(N \cdot k)$ per frame. On gate-based quantum hardware,
-            the QHED approach reduces the per-pixel operator to $O(\log_2 N)$ gates, making
-            real-time quantum edge detection feasible at scale for future hardware.
+            Classical detectors (Sobel, Canny, LoG) scale as $O(N \cdot k)$ per frame —
+            expensive for high-resolution video. On gate-based quantum hardware, the QHED
+            approach reduces the per-pixel operator to $O(\log_2^2 N)$ shift gates, making
+            real-time quantum edge detection feasible at scale once fault-tolerant hardware
+            is available.
           </p>
           <p>
-            Current simulation on classical hardware is limited to small images due to the
-            $2^n$ statevector memory requirement. True quantum advantage is realised on
-            fault-tolerant hardware where statevector simulation is not the bottleneck.
+            Current classical simulation of quantum circuits is limited to small images
+            due to the $2^n$ statevector memory. The quantum advantage is realised on
+            future hardware where this is not the bottleneck.
           </p>
         </div>
       </div>
@@ -445,14 +465,14 @@ result = edge_detection.<span class="token-fn">run</span>(img)
           <p>
             The quantum cyclic difference operator is equivalent to a circular convolution
             with the kernel $[1,\,-1]$ along each axis — a first-order finite difference.
-            Sobel uses a $3 \times 3$ kernel incorporating neighbouring pixel weights for noise
-            robustness; the quantum version uses exact nearest-neighbour differences,
+            Sobel uses a $3 \times 3$ kernel incorporating neighbouring pixel weights for
+            noise robustness; the quantum version uses exact nearest-neighbour differences,
             making it more sensitive to high-frequency detail.
           </p>
           <p>
-            On real quantum hardware (shot-based measurement), the result would need
-            statistical reconstruction from many measurements. The statevector simulation
-            here gives the exact quantum-mechanical result without measurement noise.
+            On real quantum hardware (shot-based measurement), the result would require
+            statistical reconstruction from many shots. The statevector simulation here gives
+            the exact quantum-mechanical result — free of shot noise.
           </p>
         </div>
       </div>
@@ -461,18 +481,18 @@ result = edge_detection.<span class="token-fn">run</span>(img)
     <div class="source-grid scroll-fade">
       <div class="source-card">
         <h4>QHED — Foundational Paper</h4>
-        <p>Yao, X. et al. (2017). Quantum Image Processing and its Application to Edge Detection: Theory and Experiment.</p>
-        <a href="https://doi.org/10.1103/PhysRevX.7.031041">Phys. Rev. X 7, 031041 →</a>
+        <p>Yao, X. et al. (2017). Quantum Image Processing and its Application to Edge Detection: Theory and Experiment. <em>Phys. Rev. X</em> 7, 031041.</p>
+        <a href="https://doi.org/10.1103/PhysRevX.7.031041">doi: 10.1103/PhysRevX.7.031041 →</a>
       </div>
       <div class="source-card">
         <h4>NEQR Representation</h4>
-        <p>Zhang, Y. et al. (2013). NEQR: A Novel Enhanced Quantum Representation of Digital Images.</p>
-        <a href="https://doi.org/10.1007/s11128-013-0567-z">Quantum Inf. Processing →</a>
+        <p>Zhang, Y. et al. (2013). NEQR: A Novel Enhanced Quantum Representation of Digital Images. <em>Quantum Inf. Processing</em>.</p>
+        <a href="https://doi.org/10.1007/s11128-013-0567-z">doi: 10.1007/s11128-013-0567-z →</a>
       </div>
       <div class="source-card">
         <h4>Quantum Image Processing Survey</h4>
-        <p>Yan, F. &amp; Venegas-Andraca, S. (2020). Quantum Image Processing. Springer Singapore.</p>
-        <a href="https://doi.org/10.1007/978-981-32-9331-1">Springer →</a>
+        <p>Yan, F. &amp; Venegas-Andraca, S. (2020). <em>Quantum Image Processing</em>. Springer Singapore.</p>
+        <a href="https://doi.org/10.1007/978-981-32-9331-1">doi: 10.1007/978-981-32-9331-1 →</a>
       </div>
       <div class="source-card">
         <h4>Cyclic Shift Circuit</h4>
@@ -485,16 +505,16 @@ result = edge_detection.<span class="token-fn">run</span>(img)
         <a href="https://qiskit.org">qiskit.org →</a>
       </div>
       <div class="source-card">
-        <h4>Quantum Advantage</h4>
-        <p>Biamonte, J. et al. (2017). Quantum Machine Learning. Nature 549, 195–202.</p>
-        <a href="https://doi.org/10.1038/nature23474">Nature →</a>
+        <h4>Quantum Machine Learning</h4>
+        <p>Biamonte, J. et al. (2017). Quantum Machine Learning. <em>Nature</em> 549, 195–202.</p>
+        <a href="https://doi.org/10.1038/nature23474">doi: 10.1038/nature23474 →</a>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  quantum-image-processing · Algorithm 03: Edge Detection · Qiskit 2.4
+  quantum-image-processing &nbsp;·&nbsp; Algorithm 03: Edge Detection &nbsp;·&nbsp; Qiskit 2.4
 </footer>
 <script src="../assets/js/main.js"></script>
 </body>

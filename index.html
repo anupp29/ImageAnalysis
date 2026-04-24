@@ -35,9 +35,9 @@
     <div class="hero-eyebrow">Quantum Computing · Image Processing · Research Documentation</div>
     <h1>Quantum <em>Image</em><br>Processing</h1>
     <p class="hero-sub">
-      End-to-end quantum algorithms for image inversion, image matching,
-      and edge detection. Implemented in Qiskit 2.4 using NEQR encoding
-      and validated against classical baselines with full metrics.
+      End-to-end quantum algorithms for image inversion, image matching, and edge
+      detection — built in Qiskit 2.4 using NEQR encoding and validated against
+      classical baselines with full quantitative metrics.
     </p>
     <div class="hero-tags">
       <span class="tag blue">NEQR Encoding</span>
@@ -70,28 +70,30 @@
     </div>
 
     <p class="lead">
-      All three algorithms share a common quantum image representation — NEQR —
-      and are implemented on Qiskit's statevector and QASM simulators,
-      faithfully modelling future gate-based quantum hardware.
+      All three algorithms share a single quantum image representation — NEQR — and run
+      on Qiskit's statevector and QASM simulators, faithfully modelling future gate-based
+      quantum hardware.
     </p>
 
     <div class="figure-card scroll-fade">
       <img src="assets/images/overview.png" alt="Algorithm Overview">
-      <p class="figure-caption"><strong>Figure 1.</strong> Side-by-side results for all three algorithms on a structured test image: original → inverted → matched → quantum edges → classical edges.</p>
+      <p class="figure-caption"><strong>Figure 1.</strong> Side-by-side results for all
+      three algorithms on a structured test image: original → inverted → similarity score
+      → quantum edge map → classical Sobel baseline.</p>
     </div>
 
     <div class="algorithm-box scroll-fade">
       <h4>NEQR — Novel Enhanced Quantum Representation</h4>
-      <p>Every image is encoded as a quantum superposition over all pixel positions:</p>
+      <p>Every image is encoded as a quantum superposition spanning all pixel positions simultaneously:</p>
       <div class="math-block">
-        $$|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |i\rangle \otimes |j\rangle$$
+        $$|I\rangle \;=\; \frac{1}{\sqrt{2^n}} \sum_{Y=0}^{2^{n_r}-1} \sum_{X=0}^{2^{n_c}-1} |f(Y,X)\rangle \otimes |Y\rangle \otimes |X\rangle \tag{1}$$
       </div>
       <p>
-        $|f(i,j)\rangle$ — 8-qubit <em>value register</em> (grayscale intensity) &emsp;
-        $|i\rangle$ — $n_\text{row}$ qubit position register &emsp;
-        $|j\rangle$ — $n_\text{col}$ qubit position register
+        where $|f(Y,X)\rangle$ is the <em>8-qubit value register</em> encoding grayscale
+        intensity $\in [0, 255]$, and $|Y\rangle$, $|X\rangle$ are the $n_r$- and $n_c$-qubit
+        position registers.
+        Quantum parallelism means a single circuit evaluation simultaneously encodes all $2^{2n}$ pixels.
       </p>
-      <p>This representation enables quantum parallelism: one circuit evaluation simultaneously processes all $2^{2n}$ pixels.</p>
     </div>
 
     <div class="two-col scroll-fade">
@@ -104,7 +106,7 @@
           <tbody>
             <tr><td>Inversion</td><td>$O(N)$</td><td class="good">$O(1)$ gates</td></tr>
             <tr><td>Matching</td><td>$O(N)$</td><td class="good">$O(\sqrt{N})$</td></tr>
-            <tr><td>Edge Detection</td><td>$O(N \cdot k)$</td><td class="good">$O(n)$</td></tr>
+            <tr><td>Edge Detection</td><td>$O(N \cdot k)$</td><td class="good">$O(n)$ gates</td></tr>
           </tbody>
         </table>
       </div>
@@ -117,7 +119,7 @@
           <tbody>
             <tr><td>Value register</td><td>8</td><td>—</td></tr>
             <tr><td>Position ($N \times N$)</td><td>$2\log_2 N$</td><td>$O(2^n)$</td></tr>
-            <tr><td>SWAP test ancilla</td><td>1</td><td>$n+2$</td></tr>
+            <tr><td>SWAP test ancilla</td><td>1</td><td>$n + 2$</td></tr>
           </tbody>
         </table>
       </div>
@@ -127,22 +129,22 @@
       <a href="inversion/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>01 — Image Inversion</h4>
-          <p>Pauli-X gates on the value register flip every pixel in O(1) extra gates.</p>
-          <span>Read docs →</span>
+          <p>Pauli-X gates on the value register flip every pixel in $O(1)$ extra gates — no loops, no conditions.</p>
+          <a>Read docs →</a>
         </div>
       </a>
       <a href="matching/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>02 — Image Matching</h4>
-          <p>SWAP test estimates quantum fidelity between two amplitude-encoded images.</p>
-          <span>Read docs →</span>
+          <p>The SWAP test estimates quantum fidelity $|\langle\psi_A|\psi_B\rangle|^2$ between two amplitude-encoded images.</p>
+          <a>Read docs →</a>
         </div>
       </a>
       <a href="edge-detection/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>03 — Edge Detection</h4>
-          <p>Quantum cyclic shift on position register computes pixel differences in superposition.</p>
-          <span>Read docs →</span>
+          <p>A quantum cyclic shift on the position register computes all pixel differences in superposition.</p>
+          <a>Read docs →</a>
         </div>
       </a>
     </div>
@@ -156,7 +158,8 @@
 
     <p class="lead">
       All results are validated against classical ground-truth implementations.
-      Metrics are computed on 8×8 test images simulated with Qiskit Aer's exact statevector backend.
+      Metrics are computed on 8×8 test images simulated with Qiskit Aer's exact
+      statevector backend — results are numerically exact unless stated otherwise.
     </p>
 
     <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 1rem;">Inversion Quality</h3>
@@ -186,14 +189,14 @@
     <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 1rem;">Matching Accuracy</h3>
     <div class="metrics-grid scroll-fade">
       <div class="metric-card green">
-        <div class="metric-label">Identical Q-Sim</div>
+        <div class="metric-label">Identical — Q-Sim</div>
         <div class="metric-value">1.000</div>
         <div class="metric-sub">same image → score 1</div>
       </div>
       <div class="metric-card red">
-        <div class="metric-label">Different Q-Sim</div>
+        <div class="metric-label">Different — Q-Sim</div>
         <div class="metric-value">0.104</div>
-        <div class="metric-sub">distinct images → low</div>
+        <div class="metric-sub">distinct images → near 0</div>
       </div>
       <div class="metric-card black">
         <div class="metric-label">SWAP Test Shots</div>
@@ -203,7 +206,7 @@
       <div class="metric-card black">
         <div class="metric-label">Circuit Depth</div>
         <div class="metric-value">10</div>
-        <div class="metric-sub">shallow circuit</div>
+        <div class="metric-sub">very shallow circuit</div>
       </div>
     </div>
 
@@ -212,12 +215,12 @@
       <div class="metric-card blue">
         <div class="metric-label">Corr (Sobel)</div>
         <div class="metric-value">0.636</div>
-        <div class="metric-sub">Pearson r vs Sobel</div>
+        <div class="metric-sub">Pearson $r$ vs Sobel</div>
       </div>
       <div class="metric-card blue">
         <div class="metric-label">Corr (Laplacian)</div>
         <div class="metric-value">0.612</div>
-        <div class="metric-sub">Pearson r vs LoG</div>
+        <div class="metric-sub">Pearson $r$ vs LoG</div>
       </div>
       <div class="metric-card black">
         <div class="metric-label">Qubits</div>
@@ -227,13 +230,15 @@
       <div class="metric-card black">
         <div class="metric-label">Image Support</div>
         <div class="metric-value">Any</div>
-        <div class="metric-sub">auto-resized to 2^n</div>
+        <div class="metric-sub">auto-resized to $2^n \times 2^n$</div>
       </div>
     </div>
 
     <div class="callout info scroll-fade">
       <span class="callout-icon">ℹ</span>
-      <span>All simulations use Qiskit Aer's exact statevector backend — results are numerically exact, not statistical approximations (except the SWAP test which uses shot-based measurement).</span>
+      <span>All simulations use Qiskit Aer's exact statevector backend — results are
+      numerically exact, not statistical approximations. The only exception is the SWAP
+      test, which relies on shot-based measurement to estimate $P(\text{anc}=0)$.</span>
     </div>
   </section>
 
@@ -246,22 +251,21 @@
 <pre data-lang="tree"><code>quantum-image-processing/
 ├── src/
 │   ├── encoding.py          <span class="token-cmt"># NEQR encoder — shared by all algorithms</span>
-│   ├── inversion.py         <span class="token-cmt"># Quantum image inversion</span>
+│   ├── inversion.py         <span class="token-cmt"># Quantum image inversion (Pauli-X)</span>
 │   ├── matching.py          <span class="token-cmt"># Quantum SWAP-test image matching</span>
 │   ├── edge_detection.py    <span class="token-cmt"># Quantum Hadamard edge detection</span>
-│   └── generate_figures.py  <span class="token-cmt"># Figure export pipeline</span>
-├── docs/
-│   ├── inversion/
-│   │   └── index.html
-│   ├── matching/
-│   │   └── index.html
-│   └── edge-detection/
-│       └── index.html
+│   └── generate_figures.py  <span class="token-cmt"># Figure + circuit diagram export</span>
+├── inversion/
+│   └── index.html           <span class="token-cmt"># Algorithm 01 docs</span>
+├── matching/
+│   └── index.html           <span class="token-cmt"># Algorithm 02 docs</span>
+├── edge-detection/
+│   └── index.html           <span class="token-cmt"># Algorithm 03 docs</span>
 ├── assets/
 │   ├── css/style.css
 │   ├── js/main.js
-│   └── images/              <span class="token-cmt"># Auto-generated result figures</span>
-└── index.html               <span class="token-cmt"># This page</span></code></pre>
+│   └── images/              <span class="token-cmt"># Auto-generated result + circuit figures</span>
+└── index.html               <span class="token-cmt"># This page — project overview</span></code></pre>
   </section>
 
   <section class="section scroll-fade" id="references">
@@ -272,40 +276,40 @@
     <div class="source-grid">
       <div class="source-card">
         <h4>NEQR Representation</h4>
-        <p>Zhang, Y. et al. (2013). NEQR: A Novel Enhanced Quantum Representation of Digital Images.</p>
-        <a href="https://doi.org/10.1007/s11128-013-0567-z">Quantum Inf. Processing →</a>
+        <p>Zhang, Y. et al. (2013). NEQR: A Novel Enhanced Quantum Representation of Digital Images. <em>Quantum Inf. Processing</em>.</p>
+        <a href="https://doi.org/10.1007/s11128-013-0567-z">doi: 10.1007/s11128-013-0567-z →</a>
       </div>
       <div class="source-card">
         <h4>Quantum Edge Detection</h4>
-        <p>Yao, X. et al. (2017). Quantum Image Processing and its Application to Edge Detection.</p>
-        <a href="https://doi.org/10.1103/PhysRevX.7.031041">Phys. Rev. X →</a>
+        <p>Yao, X. et al. (2017). Quantum Image Processing and its Application to Edge Detection. <em>Phys. Rev. X</em> 7, 031041.</p>
+        <a href="https://doi.org/10.1103/PhysRevX.7.031041">doi: 10.1103/PhysRevX.7.031041 →</a>
       </div>
       <div class="source-card">
         <h4>SWAP Test</h4>
-        <p>Buhrman, H. et al. (2001). Quantum Fingerprinting. PRL 87, 167902.</p>
-        <a href="https://doi.org/10.1103/PhysRevLett.87.167902">PRL →</a>
+        <p>Buhrman, H. et al. (2001). Quantum Fingerprinting. <em>Phys. Rev. Lett.</em> 87, 167902.</p>
+        <a href="https://doi.org/10.1103/PhysRevLett.87.167902">doi: 10.1103/PhysRevLett.87.167902 →</a>
       </div>
       <div class="source-card">
-        <h4>Qiskit</h4>
+        <h4>Qiskit Framework</h4>
         <p>IBM Quantum (2024). Qiskit: An Open-source Framework for Quantum Computing.</p>
         <a href="https://qiskit.org">qiskit.org →</a>
       </div>
       <div class="source-card">
         <h4>Amplitude Encoding</h4>
-        <p>Schuld, M. & Petruccione, F. (2021). Machine Learning with Quantum Computers.</p>
-        <a href="https://doi.org/10.1007/978-3-030-83098-4">Springer →</a>
+        <p>Schuld, M. &amp; Petruccione, F. (2021). <em>Machine Learning with Quantum Computers</em>. Springer.</p>
+        <a href="https://doi.org/10.1007/978-3-030-83098-4">doi: 10.1007/978-3-030-83098-4 →</a>
       </div>
       <div class="source-card">
-        <h4>Quantum Advantage</h4>
-        <p>Biamonte, J. et al. (2017). Quantum Machine Learning. Nature 549, 195–202.</p>
-        <a href="https://doi.org/10.1038/nature23474">Nature →</a>
+        <h4>Quantum Machine Learning</h4>
+        <p>Biamonte, J. et al. (2017). Quantum Machine Learning. <em>Nature</em> 549, 195–202.</p>
+        <a href="https://doi.org/10.1038/nature23474">doi: 10.1038/nature23474 →</a>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  quantum-image-processing · Qiskit 2.4 · Python 3.10+ · MIT License
+  quantum-image-processing &nbsp;·&nbsp; Qiskit 2.4 &nbsp;·&nbsp; Python 3.10+ &nbsp;·&nbsp; MIT License
 </footer>
 
 <script src="assets/js/main.js"></script>
