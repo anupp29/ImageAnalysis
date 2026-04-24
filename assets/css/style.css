@@ -69,6 +69,30 @@ nav {
   justify-content: space-between;
 }
 
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 101;
+}
+
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 .nav-brand {
   font-family: var(--mono);
   font-size: 0.88rem;
@@ -360,11 +384,56 @@ p { margin-bottom: 1rem; }
   margin: 1.5rem 0;
 }
 
+.algo-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 860px) {
+  .algo-cards { grid-template-columns: 1fr 1fr; }
+  .source-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 680px) {
   .two-col { grid-template-columns: 1fr; }
-  nav { padding: 0 1rem; }
+  .algo-cards { grid-template-columns: 1fr; }
+  .source-grid { grid-template-columns: 1fr; }
+  nav { padding: 0 1rem; height: auto; min-height: 56px; flex-wrap: wrap; }
   main { padding: 0 1rem 4rem; }
   .hero { padding: 3rem 0 2.5rem; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .section-header h2 { font-size: 1.6rem; }
+  pre { font-size: 0.78em; }
+  .math { font-size: 0.78rem; }
+  .comparison-table { font-size: 0.8rem; }
+  .comparison-table th, .comparison-table td { padding: 0.5rem 0.6rem; }
+  .circuit-diagram { font-size: 0.72rem; padding: 1rem; }
+  .toc { display: block; min-width: 0; }
+
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 1rem 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links li { padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+  .nav-links li:last-child { border-bottom: none; }
+}
+
+@media (max-width: 400px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2rem; }
 }
 
 .callout {

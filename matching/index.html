@@ -4,14 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Image Matching — Quantum Image Processing</title>
-<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
 
 <nav>
-  <div class="nav-brand">⬡ <a href="../../index.html" style="color:inherit;text-decoration:none;"><span>quantum</span>-image-processing</a></div>
+  <div class="nav-brand">⬡ <a href="../index.html" style="color:inherit;text-decoration:none;"><span>quantum</span>-image-processing</a></div>
+  <button class="nav-hamburger" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
   <ul class="nav-links">
-    <li><a href="../../index.html">Overview</a></li>
+    <li><a href="../index.html">Overview</a></li>
     <li><a href="../inversion/index.html">Inversion</a></li>
     <li><a href="#algorithm" class="active">Matching</a></li>
     <li><a href="../edge-detection/index.html">Edge Detection</a></li>
@@ -115,7 +118,7 @@ Quantum Similarity = 2·P(0) − 1  ∈ [0, 1]</div>
     </div>
 
     <div class="figure-card scroll-fade">
-      <img src="../../assets/images/matching.png" alt="Matching Results">
+      <img src="../assets/images/matching.png" alt="Matching Results">
       <p class="figure-caption">
         <strong>Figure 1.</strong> Four image pairs tested: (1) structured vs structured (identical),
         (2) structured vs checkerboard (different), (3) circle vs circle (identical),
@@ -243,6 +246,6 @@ ranked = matching.<span class="token-fn">batch</span>(img_a, gallery, shots=<spa
 <footer>
   quantum-image-processing · Algorithm 02: Matching · Qiskit 2.4
 </footer>
-<script src="../../assets/js/main.js"></script>
+<script src="../assets/js/main.js"></script>
 </body>
 </html>
