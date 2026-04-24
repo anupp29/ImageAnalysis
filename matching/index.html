@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Image Matching — Quantum Image Processing</title>
 <link rel="stylesheet" href="../assets/css/style.css">
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
 </head>
 <body>
 
@@ -28,7 +36,7 @@
     <p class="hero-sub">
       Fidelity-based image similarity estimation using the quantum SWAP test.
       Identical images score 1.0; dissimilar images score near 0.
-      Achieves O(√N) complexity vs O(N) classical dot product.
+      Achieves $O(\sqrt{N})$ complexity vs $O(N)$ classical dot product.
     </p>
     <div class="hero-tags">
       <span class="tag blue">Quantum SWAP Test</span>
@@ -47,65 +55,59 @@
 
     <p class="lead">
       The SWAP test is a canonical quantum subroutine that estimates the inner product
-      ⟨ψ|φ⟩ between two quantum states using a single ancilla qubit and n CSWAP gates.
-      We encode each image as a normalised amplitude vector and run the SWAP test to
-      compute quantum fidelity as a similarity measure.
+      $|\langle\psi|\phi\rangle|$ between two quantum states using a single ancilla qubit
+      and $n$ CSWAP gates. We encode each image as a normalised amplitude vector and run
+      the SWAP test to compute quantum fidelity as a similarity measure.
     </p>
 
     <div class="algorithm-box">
       <h4>Amplitude Encoding</h4>
-      <p>The flattened, normalised pixel vector of an H×W image is encoded as:</p>
-      <div class="math">v = [f(0,0), f(0,1), ..., f(H-1,W-1)]  ∈ ℝ^(H·W)
-v̂ = v / ‖v‖₂                           (unit norm)
-
-|ψ_A⟩ = Σᵢ v̂ᵢ |i⟩                      (amplitude encoding)
-
-Requires n = ⌈log₂(H·W)⌉ qubits</div>
+      <p>The flattened, normalised pixel vector of an $H \times W$ image is encoded as:</p>
+      <div class="math-block">
+        $$\mathbf{v} = \bigl[f(0,0),\, f(0,1),\, \ldots,\, f(H-1,W-1)\bigr] \;\in\; \mathbb{R}^{H \cdot W}$$
+        $$\hat{\mathbf{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2} \qquad \text{(unit norm)}$$
+        $$|\psi_A\rangle = \sum_i \hat{v}_i\,|i\rangle \qquad \text{requires } n = \lceil\log_2(H \cdot W)\rceil \text{ qubits}$$
+      </div>
     </div>
 
     <div class="algorithm-box">
-      <h4>SWAP Test Circuit</h4>
-      <p>A single ancilla qubit mediates comparison of two n-qubit states:</p>
-      <div class="math">Step 1:  Apply H to ancilla
-Step 2:  Apply CSWAP(ancilla, |ψ_A⟩[i], |ψ_B⟩[i])  for i = 0..n-1
-Step 3:  Apply H to ancilla
-Step 4:  Measure ancilla
-
-P(ancilla = 0) = ½ + ½·|⟨ψ_A|ψ_B⟩|²
-
-Quantum Similarity = 2·P(0) − 1  ∈ [0, 1]</div>
+      <h4>SWAP Test Protocol</h4>
+      <p>A single ancilla qubit mediates comparison of two $n$-qubit states $|\psi_A\rangle$ and $|\psi_B\rangle$:</p>
+      <div class="math-block">
+        $$\text{Step 1: } H\,|\,0\rangle_\text{anc} \;\longrightarrow\; \frac{|0\rangle + |1\rangle}{\sqrt{2}}$$
+        $$\text{Step 2: Apply } \text{CSWAP}(\text{anc},\, |\psi_A\rangle_i,\, |\psi_B\rangle_i) \quad i = 0,\ldots,n-1$$
+        $$\text{Step 3: Apply } H \text{ to ancilla, then measure}$$
+        $$P(\text{anc} = 0) = \frac{1}{2} + \frac{1}{2}|\langle\psi_A|\psi_B\rangle|^2$$
+        $$\text{Quantum Similarity} = 2\,P(0) - 1 \;\in\; [0,\,1]$$
+      </div>
     </div>
 
-    <div class="circuit-diagram scroll-fade">
-<span class="label">SWAP Test Circuit</span>
-
-<span class="label">ancilla</span> <span class="wire">─┤H├──●──────●──────●── ─┤H├─</span><span class="meas">─M─</span>
-<span class="wire">              │      │      │</span>
-<span class="label"> |ψ_A⟩[0]</span> <span class="wire">──────┤×┤    │      │   ───</span>
-<span class="label"> |ψ_A⟩[1]</span> <span class="wire">──────────┤×┤  │   ───</span>
-<span class="label">    ...  </span> <span class="wire">              ...    │</span>
-<span class="label"> |ψ_B⟩[0]</span> <span class="wire">──────┤×┤    │      │   ───</span>
-<span class="label"> |ψ_B⟩[1]</span> <span class="wire">──────────┤×┤  │   ───</span>
-<span class="label">    ...  </span> <span class="wire">              ...</span>
-
-<span class="wire">    Circuit depth: O(n)    Ancilla qubits: 1</span>
+    <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Circuit Diagram</h3>
+    <div class="circuit-img-card scroll-fade">
+      <img src="../assets/images/circuit_matching.png"
+           alt="Quantum SWAP Test Circuit — 1 ancilla + 2×n image qubits">
+      <p class="circuit-caption">
+        Qiskit SWAP test circuit for comparing two 8-qubit amplitude-encoded image states.
+        The ancilla qubit (q₀) is sandwiched between two Hadamard gates;
+        the CSWAP gates entangle corresponding qubits of the two images.
+      </p>
     </div>
 
     <div class="two-col scroll-fade">
       <div>
         <div class="algorithm-box">
           <h4>Quantum Similarity Interpretation</h4>
-          <p>Score = 1.0 → identical images (|⟨ψ|ψ⟩|² = 1)</p>
-          <p>Score → 0   → orthogonal (maximally different)</p>
-          <p>Score = 0.5 → random / uncorrelated</p>
+          <p>$\text{Score} = 1.0$ → identical images $\bigl(|\langle\psi|\psi\rangle|^2 = 1\bigr)$</p>
+          <p>$\text{Score} \to 0\,$ → orthogonal / maximally different</p>
+          <p>$\text{Score} = 0.5$ → random / uncorrelated</p>
         </div>
       </div>
       <div>
         <div class="algorithm-box">
           <h4>Classical Baselines Computed</h4>
-          <p>Cosine similarity: dot(v̂_A, v̂_B)</p>
-          <p>MSE: mean((A − B)²)</p>
-          <p>Histogram intersection: Σ min(hA, hB)</p>
+          <p>Cosine similarity: $\hat{\mathbf{v}}_A \cdot \hat{\mathbf{v}}_B$</p>
+          <p>MSE: $\frac{1}{N}\sum(A_i - B_i)^2$</p>
+          <p>Histogram intersection: $\sum_k \min(h_A^k,\, h_B^k)$</p>
         </div>
       </div>
     </div>
@@ -209,7 +211,7 @@ Quantum Similarity = 2·P(0) − 1  ∈ [0, 1]</div>
       <h2>Implementation</h2>
     </div>
 
-<pre><code><span class="token-kw">import</span> matching
+<pre data-lang="python"><code><span class="token-kw">import</span> matching
 <span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
 
 img_a = np.random.<span class="token-fn">rand</span>(<span class="token-num">16</span>, <span class="token-num">16</span>) * <span class="token-num">255</span>
@@ -217,15 +219,16 @@ img_b = np.random.<span class="token-fn">rand</span>(<span class="token-num">16<
 
 result = matching.<span class="token-fn">run</span>(img_a, img_b, shots=<span class="token-num">8192</span>)
 
-<span class="token-fn">print</span>(<span class="token-str">f"Quantum similarity:     {result['quantum_similarity']:.4f}"</span>)
-<span class="token-fn">print</span>(<span class="token-str">f"Classical cosine:       {result['classical_cosine']:.4f}"</span>)
-<span class="token-fn">print</span>(<span class="token-str">f"Histogram intersection: {result['histogram_intersection']:.4f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Quantum similarity:     {result[<span class="token-str">'quantum_similarity'</span>]:.4f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Classical cosine:       {result[<span class="token-str">'classical_cosine'</span>]:.4f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Histogram intersection: {result[<span class="token-str">'histogram_intersection'</span>]:.4f}"</span>)
 
+<span class="token-cmt"># Rank a gallery of images by similarity to the query</span>
 gallery = [img_a, img_b, np.<span class="token-fn">zeros</span>((<span class="token-num">16</span>,<span class="token-num">16</span>)), np.<span class="token-fn">ones</span>((<span class="token-num">16</span>,<span class="token-num">16</span>))*<span class="token-num">128</span>]
-ranked = matching.<span class="token-fn">batch</span>(img_a, gallery, shots=<span class="token-num">4096</span>)
+ranked  = matching.<span class="token-fn">batch</span>(img_a, gallery, shots=<span class="token-num">4096</span>)
 
 <span class="token-kw">for</span> r <span class="token-kw">in</span> ranked:
-    <span class="token-fn">print</span>(<span class="token-str">f"  index {r['index']}: {r['quantum_similarity']:.4f}"</span>)</code></pre>
+    <span class="token-fn">print</span>(<span class="token-str">f"  index {r[<span class="token-str">'index'</span>]}: {r[<span class="token-str">'quantum_similarity'</span>]:.4f}"</span>)</code></pre>
 
     <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Qubit Scaling</h3>
     <table class="comparison-table scroll-fade">

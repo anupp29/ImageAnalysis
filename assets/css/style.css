@@ -2,22 +2,24 @@
 
 :root {
   --white:    #ffffff;
-  --off:      #f7f7f5;
+  --off:      #f8f8f6;
   --border:   #e4e4e0;
-  --muted:    #888880;
+  --muted:    #7c7c74;
   --body:     #2a2a26;
   --ink:      #0a0a08;
   --blue:     #1a1aff;
-  --blue-lt:  #e8e8ff;
-  --red:      #cc0000;
+  --blue-lt:  #eaeaff;
+  --red:      #c00000;
   --red-lt:   #fff0f0;
-  --green:    #006633;
+  --green:    #005c2e;
   --green-lt: #e6f5ed;
   --mono:     'DM Mono', monospace;
   --sans:     'DM Sans', sans-serif;
   --serif:    'DM Serif Display', serif;
-  --radius:   6px;
-  --shadow:   0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.05);
+  --radius:   8px;
+  --radius-lg: 12px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.10), 0 8px 24px rgba(0,0,0,0.07);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,26 +37,78 @@ body {
 a { color: var(--blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-code, pre {
+/* ── Code blocks ─────────────────────────────────────────────────────────── */
+code {
   font-family: var(--mono);
-  font-size: 0.86em;
+  font-size: 0.875em;
+  background: var(--off);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--body);
 }
 
 pre {
-  background: var(--ink);
-  color: #e8e8e0;
-  border-radius: var(--radius);
-  padding: 1.2rem 1.4rem;
-  overflow-x: auto;
-  line-height: 1.55;
+  position: relative;
+  background: #1e1e2e;           /* Catppuccin Mocha base */
+  color: #cdd6f4;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin: 1.5rem 0;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
-.token-kw    { color: #7aa2f7; }
-.token-str   { color: #9ece6a; }
-.token-cmt   { color: #565f89; font-style: italic; }
-.token-fn    { color: #e0af68; }
-.token-cls   { color: #bb9af7; }
-.token-num   { color: #ff9e64; }
+pre code {
+  display: block;
+  padding: 1.4rem 1.6rem;
+  overflow-x: auto;
+  line-height: 1.7;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  color: inherit;
+}
+
+/* Language badge */
+pre[data-lang]::before {
+  content: attr(data-lang);
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #89b4fa;
+  background: rgba(137,180,250,0.12);
+  padding: 3px 10px;
+  border-bottom-left-radius: 6px;
+  border-top-right-radius: var(--radius-lg);
+  pointer-events: none;
+}
+
+/* Line numbers strip */
+pre .ln {
+  display: inline-block;
+  min-width: 2.4rem;
+  padding-right: 1rem;
+  color: #45475a;
+  user-select: none;
+  text-align: right;
+}
+
+/* Token colours — Catppuccin-inspired */
+.token-kw    { color: #cba6f7; font-weight: 500; }  /* mauve */
+.token-str   { color: #a6e3a1; }                     /* green */
+.token-cmt   { color: #6c7086; font-style: italic; } /* overlay0 */
+.token-fn    { color: #89b4fa; }                     /* blue */
+.token-cls   { color: #f5c2e7; }                     /* pink */
+.token-num   { color: #fab387; }                     /* peach */
+.token-op    { color: #89dceb; }                     /* sky */
+.token-dec   { color: #f38ba8; }                     /* red (decorators) */
 
 nav {
   position: sticky;
@@ -241,37 +295,50 @@ p { margin-bottom: 1rem; }
 
 .algorithm-box h4 {
   font-family: var(--mono);
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--blue);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
 }
 
-.algorithm-box p { margin-bottom: 0.4rem; font-size: 0.92rem; color: var(--body); }
+.algorithm-box p { margin-bottom: 0.5rem; font-size: 0.93rem; color: var(--body); }
+.algorithm-box p:last-child { margin-bottom: 0; }
 
-.math {
-  font-family: var(--mono);
-  font-size: 0.88rem;
-  background: var(--white);
+/* ── Math / KaTeX blocks ─────────────────────────────────────────────────── */
+.math-block {
+  background: #fafafa;
   border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
   border-radius: var(--radius);
-  padding: 0.9rem 1.2rem;
-  margin: 1rem 0;
-  color: var(--ink);
+  padding: 1.2rem 1.6rem;
+  margin: 1.1rem 0;
   overflow-x: auto;
-  white-space: pre;
+  font-size: 1.06rem;
+  line-height: 1.8;
+}
+
+.katex-display {
+  margin: 0 !important;
+}
+
+/* Inline math */
+.math-inline .katex {
+  font-size: 1em;
 }
 
 .figure-card {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   margin: 2rem 0;
+  transition: box-shadow 0.2s;
 }
+
+.figure-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.13); }
 
 .figure-card img {
   width: 100%;
@@ -361,21 +428,54 @@ p { margin-bottom: 1rem; }
 .comparison-table .warn { color: #886600; font-weight: 600; }
 
 .circuit-diagram {
-  background: var(--ink);
-  color: #c8c8c0;
+  background: #1e1e2e;
+  color: #cdd6f4;
   font-family: var(--mono);
   font-size: 0.82rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 1.4rem 1.6rem;
-  line-height: 1.8;
+  line-height: 1.9;
   overflow-x: auto;
   margin: 1.25rem 0;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: var(--shadow-md);
 }
 
-.circuit-diagram .wire  { color: #565f89; }
-.circuit-diagram .gate  { color: #e0af68; }
-.circuit-diagram .meas  { color: #9ece6a; }
-.circuit-diagram .label { color: #7aa2f7; }
+.circuit-diagram .wire  { color: #6c7086; }
+.circuit-diagram .gate  { color: #fab387; }
+.circuit-diagram .meas  { color: #a6e3a1; }
+.circuit-diagram .label { color: #89b4fa; font-weight: 500; }
+
+/* Generated circuit images */
+.circuit-img-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  margin: 1.5rem 0;
+}
+
+.circuit-img-card img {
+  width: 100%;
+  display: block;
+  border-bottom: 1px solid var(--border);
+}
+
+.circuit-img-card .circuit-caption {
+  padding: 0.8rem 1.2rem;
+  font-size: 0.81rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.circuit-img-card .circuit-caption::before {
+  content: "⬡";
+  color: var(--blue);
+  font-size: 0.9rem;
+}
 
 .two-col {
   display: grid;
@@ -406,7 +506,8 @@ p { margin-bottom: 1rem; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); }
   .section-header h2 { font-size: 1.6rem; }
   pre { font-size: 0.78em; }
-  .math { font-size: 0.78rem; }
+  pre code { padding: 1rem 1.2rem; }
+  .math-block { font-size: 0.9rem; padding: 1rem 1.1rem; }
   .comparison-table { font-size: 0.8rem; }
   .comparison-table th, .comparison-table td { padding: 0.5rem 0.6rem; }
   .circuit-diagram { font-size: 0.72rem; padding: 1rem; }

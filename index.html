@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Image Processing</title>
 <link rel="stylesheet" href="assets/css/style.css">
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
 </head>
 <body>
 
@@ -75,12 +83,15 @@
     <div class="algorithm-box scroll-fade">
       <h4>NEQR — Novel Enhanced Quantum Representation</h4>
       <p>Every image is encoded as a quantum superposition over all pixel positions:</p>
-      <div class="math">|I⟩ = 1/√(2ⁿ)  Σ_{i,j}  |f(i,j)⟩ ⊗ |i⟩ ⊗ |j⟩
-
-  |f(i,j)⟩  — 8-qubit value register (grayscale intensity)
-  |i⟩        — n_row qubit position register
-  |j⟩        — n_col qubit position register</div>
-      <p>This representation allows quantum parallelism: one circuit evaluation simultaneously processes all 2<sup>2n</sup> pixels.</p>
+      <div class="math-block">
+        $$|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |i\rangle \otimes |j\rangle$$
+      </div>
+      <p>
+        $|f(i,j)\rangle$ — 8-qubit <em>value register</em> (grayscale intensity) &emsp;
+        $|i\rangle$ — $n_\text{row}$ qubit position register &emsp;
+        $|j\rangle$ — $n_\text{col}$ qubit position register
+      </p>
+      <p>This representation enables quantum parallelism: one circuit evaluation simultaneously processes all $2^{2n}$ pixels.</p>
     </div>
 
     <div class="two-col scroll-fade">
@@ -91,9 +102,9 @@
             <tr><th>Algorithm</th><th>Classical</th><th>Quantum</th></tr>
           </thead>
           <tbody>
-            <tr><td>Inversion</td><td>O(N)</td><td class="good">O(1) gates</td></tr>
-            <tr><td>Matching</td><td>O(N)</td><td class="good">O(√N)</td></tr>
-            <tr><td>Edge Detection</td><td>O(N·k)</td><td class="good">O(n)</td></tr>
+            <tr><td>Inversion</td><td>$O(N)$</td><td class="good">$O(1)$ gates</td></tr>
+            <tr><td>Matching</td><td>$O(N)$</td><td class="good">$O(\sqrt{N})$</td></tr>
+            <tr><td>Edge Detection</td><td>$O(N \cdot k)$</td><td class="good">$O(n)$</td></tr>
           </tbody>
         </table>
       </div>
@@ -105,8 +116,8 @@
           </thead>
           <tbody>
             <tr><td>Value register</td><td>8</td><td>—</td></tr>
-            <tr><td>Position (N×N)</td><td>2·log₂N</td><td>O(2ⁿ)</td></tr>
-            <tr><td>SWAP test ancilla</td><td>1</td><td>n+2</td></tr>
+            <tr><td>Position ($N \times N$)</td><td>$2\log_2 N$</td><td>$O(2^n)$</td></tr>
+            <tr><td>SWAP test ancilla</td><td>1</td><td>$n+2$</td></tr>
           </tbody>
         </table>
       </div>
@@ -232,7 +243,7 @@
       <h2>Project <span>Structure</span></h2>
     </div>
 
-<pre><code>quantum-image-processing/
+<pre data-lang="tree"><code>quantum-image-processing/
 ├── src/
 │   ├── encoding.py          <span class="token-cmt"># NEQR encoder — shared by all algorithms</span>
 │   ├── inversion.py         <span class="token-cmt"># Quantum image inversion</span>

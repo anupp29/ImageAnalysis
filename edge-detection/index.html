@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Edge Detection — Quantum Image Processing</title>
 <link rel="stylesheet" href="../assets/css/style.css">
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'$$',right:'$$',display:true},
+    {left:'$',right:'$',display:false}
+  ]})"></script>
 </head>
 <body>
 
@@ -28,7 +36,7 @@
     <p class="hero-sub">
       Quantum Hadamard Edge Detection (QHED) using NEQR encoding and a quantum cyclic
       shift operator. Horizontal and vertical pixel differences are computed in superposition
-      across all pixels simultaneously, delivering O(n) gate complexity vs O(N·k) classical.
+      across all pixels simultaneously, delivering $O(n)$ gate complexity vs $O(N \cdot k)$ classical.
     </p>
     <div class="hero-tags">
       <span class="tag blue">QHED Algorithm</span>
@@ -48,7 +56,7 @@
 
     <p class="lead">
       Classical edge detection (Sobel, Canny, Laplacian-of-Gaussian) convolves every pixel
-      with a kernel, requiring O(N·k) operations for image size N and kernel size k.
+      with a kernel, requiring $O(N \cdot k)$ operations for image size $N$ and kernel size $k$.
       The quantum approach computes all pixel differences in a single circuit evaluation
       by leveraging NEQR superposition and a quantum cyclic shift on the position register.
     </p>
@@ -56,26 +64,28 @@
     <div class="algorithm-box">
       <h4>NEQR Quantum Image State</h4>
       <p>The input image is encoded in the NEQR basis as a superposition over all pixel positions:</p>
-      <div class="math">|I⟩ = 1/√(2ⁿ)  Σ_{i=0}^{2ⁿ-1}  |f(i)⟩ ⊗ |i⟩
-
-  |f(i)⟩  — 8-qubit value register encoding grayscale intensity [0, 255]
-  |i⟩     — position register (n_row + n_col qubits)
-  n       — total position qubits = n_row + n_col</div>
+      <div class="math-block">
+        $$|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i=0}^{2^n - 1} |f(i)\rangle \otimes |i\rangle$$
+      </div>
+      <p>where $|f(i)\rangle$ is the 8-qubit value register encoding grayscale intensity $[0,\,255]$,
+      and $|i\rangle$ spans the position register ($n_\text{row} + n_\text{col}$ qubits).</p>
     </div>
 
     <div class="algorithm-box">
       <h4>Quantum Cyclic Shift Operator</h4>
       <p>
-        The position register is incremented modulo 2ⁿ using a quantum ripple-carry adder
-        (implemented via multi-controlled X gates). This maps each pixel at position (i, j)
-        to (i, j+1) in superposition — effectively a cyclic horizontal shift of the entire image:
+        The position register is incremented modulo $2^n$ using a quantum ripple-carry adder
+        (multi-controlled X gates). This maps each pixel at position $(i, j)$ to $(i, j+1)$
+        in superposition — effectively a cyclic horizontal shift of the entire image:
       </p>
-      <div class="math">S_col |I⟩ = 1/√(2ⁿ)  Σ_{i,j}  |f(i,j)⟩ ⊗ |i⟩ ⊗ |(j+1) mod 2^n_col⟩
-
-S_row |I⟩ = 1/√(2ⁿ)  Σ_{i,j}  |f(i,j)⟩ ⊗ |(i+1) mod 2^n_row⟩ ⊗ |j⟩
-
-Gate count for cyclic shift on k qubits:  Σ_{i=1}^{k} C^i-X  =  k(k+1)/2 gates
-For k = 3 (8×8 image):  6 multi-controlled gates per axis</div>
+      <div class="math-block">
+        $$S_\text{col}\,|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |i\rangle \otimes |(j+1) \bmod 2^{n_\text{col}}\rangle$$
+        $$S_\text{row}\,|I\rangle = \frac{1}{\sqrt{2^n}} \sum_{i,j} |f(i,j)\rangle \otimes |(i+1) \bmod 2^{n_\text{row}}\rangle \otimes |j\rangle$$
+      </div>
+      <p>Gate count for cyclic shift on $k$ qubits:
+        $\displaystyle\sum_{i=1}^{k} C^i\text{-}X = \frac{k(k+1)}{2}$ gates.
+        For $k = 3$ (8×8 image): 6 multi-controlled gates per axis.
+      </p>
     </div>
 
     <div class="algorithm-box">
@@ -84,12 +94,11 @@ For k = 3 (8×8 image):  6 multi-controlled gates per axis</div>
         After decoding both the original and shifted statevectors, pixel differences give
         the edge response along each axis. The combined edge map is the Euclidean norm:
       </p>
-      <div class="math">h_edge(i,j) = | f(i,j)  −  f(i, j+1) |        (horizontal edges)
-v_edge(i,j) = | f(i,j)  −  f(i+1, j) |        (vertical edges)
-
-combined(i,j) = √( h_edge² + v_edge² )         (gradient magnitude)
-
-Normalised to [0, 255] for display and comparison.</div>
+      <div class="math-block">
+        $$h_\text{edge}(i,j) = \bigl|f(i,j) - f(i,\,j+1)\bigr| \qquad \text{(horizontal edges)}$$
+        $$v_\text{edge}(i,j) = \bigl|f(i,j) - f(i+1,\,j)\bigr| \qquad \text{(vertical edges)}$$
+        $$\text{combined}(i,j) = \sqrt{h_\text{edge}^2 + v_\text{edge}^2} \qquad \text{normalised to } [0,\,255]$$
+      </div>
     </div>
 
     <div class="callout tip">
@@ -106,22 +115,22 @@ Normalised to [0, 255] for display and comparison.</div>
       <div>
         <div class="algorithm-box">
           <h4>Quantum Algorithm Steps</h4>
-          <p>1. Encode image with NEQR → |I⟩</p>
+          <p>1. Encode image with NEQR → $|I\rangle$</p>
           <p>2. Run statevector sim → decode original pixel grid</p>
-          <p>3. Apply cyclic shift to column register → decode shifted_h</p>
-          <p>4. Apply cyclic shift to row register → decode shifted_v</p>
-          <p>5. Compute h_edge, v_edge, combined gradient map</p>
+          <p>3. Apply $S_\text{col}$ → decode shifted_h</p>
+          <p>4. Apply $S_\text{row}$ → decode shifted_v</p>
+          <p>5. Compute $h_\text{edge}$, $v_\text{edge}$, combined gradient map</p>
           <p>6. Normalise and compare vs Sobel / Laplacian</p>
         </div>
       </div>
       <div>
         <div class="algorithm-box">
           <h4>Complexity Analysis</h4>
-          <p>NEQR encoding:  O(2ⁿ) gates  (one-time cost)</p>
-          <p>Cyclic shift:   O(n²) gates   (n = log₂N per axis)</p>
-          <p>Statevector decode: O(2ⁿ)    (classical post-processing)</p>
-          <p>Classical Sobel:   O(N·k)     (N pixels, k kernel)</p>
-          <p><strong>Quantum advantage scales with image dimension n = log₂N</strong></p>
+          <p>NEQR encoding: $O(2^n)$ gates (one-time cost)</p>
+          <p>Cyclic shift: $O(n^2)$ gates, $n = \log_2 N$ per axis</p>
+          <p>Statevector decode: $O(2^n)$ classical post-processing</p>
+          <p>Classical Sobel: $O(N \cdot k)$ — $N$ pixels, $k$ kernel</p>
+          <p><strong>Quantum advantage scales with $n = \log_2 N$</strong></p>
         </div>
       </div>
     </div>
@@ -139,31 +148,34 @@ Normalised to [0, 255] for display and comparison.</div>
       evaluations produce the horizontal and vertical edge maps.
     </p>
 
+    <div class="circuit-img-card scroll-fade">
+      <img src="../assets/images/circuit_edge.png"
+           alt="Quantum Edge Detection Circuit — NEQR encoding + cyclic shift on col and row registers">
+      <p class="circuit-caption">
+        Qiskit edge-detection circuit on an 8×8 image (14 qubits). The NEQR layer places the
+        position registers in superposition; the two cyclic-shift blocks (one per axis) implement
+        the quantum ripple-carry increment modulo $2^k$.
+      </p>
+    </div>
+
     <div class="circuit-diagram scroll-fade">
-<span class="label">NEQR Encoding + Horizontal Edge Circuit (column shift)</span>
+<span class="label">Conceptual Layout — NEQR + Horizontal Cyclic Shift (column axis)</span>
 
-<span class="label">val[0]</span> <span class="wire">─┤H├─ ·── ·── ·── ·── ...  ───────────────────</span>  ← value register
-<span class="label">val[1]</span> <span class="wire">─┤H├─ ·── ·── ·── ·── ...  ───────────────────</span>
-<span class="label">  ...</span>
-<span class="label">val[7]</span> <span class="wire">─┤H├─ ·── ·── ·── ·── ...  ───────────────────</span>
-<span class="label">row[0]</span> <span class="wire">─┤H├─ ──── ──── ──── ──── ...  ─────────────────</span>  ← row position
-<span class="label">  ...</span>
-<span class="label">col[0]</span> <span class="wire">─┤H├─ ──── ──── ──── ──── ... ─┤X├─────────────</span>  ← col[0] flipped
-<span class="label">col[1]</span> <span class="wire">─┤H├─ ──── ──── ──── ──── ... ──●──┤X├──────────</span>  ← MCX(col[0], col[1])
-<span class="label">col[2]</span> <span class="wire">─┤H├─ ──── ──── ──── ──── ... ──●───●──┤X├───────</span>  ← MCX(col[0:2], col[2])
+<span class="label">val[0..7]</span> <span class="wire">─┤H├─ ···(NEQR)···  ──────────────────────</span>  ← value register
+<span class="label">row[0..2]</span> <span class="wire">─┤H├─ ───────────  ──────────────────────</span>  ← row position
+<span class="label">col[0]  </span> <span class="wire">─┤H├─ ───────────</span><span class="gate">─┤X├─</span><span class="wire">──────────────</span>  ← LSB always flips
+<span class="label">col[1]  </span> <span class="wire">─┤H├─ ─────────── ──●──</span><span class="gate">─┤X├─</span><span class="wire">────────</span>  ← MCX(col[0], col[1])
+<span class="label">col[2]  </span> <span class="wire">─┤H├─ ─────────── ──●───●──</span><span class="gate">─┤X├─</span><span class="wire">────</span>  ← MCX(col[0:2], col[2])
 
-<span class="wire">       └──────── NEQR encoding ──────────┘ └── cyclic +1 ──┘</span>
-
-<span class="gate">Gate count for cyclic shift (k qubits):  k(k+1)/2  multi-controlled X gates</span>
-<span class="gate">For 8×8 image (k=3):  3 + 2 + 1 = 6 gates per axis</span>
+<span class="wire">           └─── NEQR encoding ───┘  └─── cyclic +1 col ───┘</span>
     </div>
 
     <div class="callout info scroll-fade">
       <span class="callout-icon">ℹ</span>
       <span>
         The cyclic increment is a quantum ripple-carry adder with wraparound. For a 3-qubit
-        register it implements |b₂b₁b₀⟩ → |(b₂b₁b₀ + 1) mod 8⟩. The circuit uses
-        multi-controlled Toffoli (MCX) gates, decomposable into O(k²) elementary gates.
+        register it implements $|b_2 b_1 b_0\rangle \to |(b_2 b_1 b_0 + 1) \bmod 8\rangle$.
+        The circuit uses multi-controlled Toffoli (MCX) gates, each decomposable into $O(k^2)$ elementary gates.
       </span>
     </div>
 
@@ -173,11 +185,11 @@ Normalised to [0, 255] for display and comparison.</div>
         <tr><th>Component</th><th>Gate Type</th><th>Count (8×8)</th><th>Scales as</th></tr>
       </thead>
       <tbody>
-        <tr><td>NEQR value prep</td><td>H + CCNOT</td><td>8 + O(64)</td><td>O(2ⁿ)</td></tr>
-        <tr><td>NEQR position prep</td><td>H</td><td>6</td><td>O(n)</td></tr>
-        <tr><td>Cyclic shift (col)</td><td>MCX</td><td>6</td><td>O(n²)</td></tr>
-        <tr><td>Cyclic shift (row)</td><td>MCX</td><td>6</td><td>O(n²)</td></tr>
-        <tr><td><strong>Total qubits</strong></td><td>—</td><td><strong>14</strong></td><td>8 + 2·log₂N</td></tr>
+        <tr><td>NEQR value prep</td><td>H + CCNOT</td><td>8 + O(64)</td><td>$O(2^n)$</td></tr>
+        <tr><td>NEQR position prep</td><td>H</td><td>6</td><td>$O(n)$</td></tr>
+        <tr><td>Cyclic shift (col)</td><td>MCX</td><td>6</td><td>$O(n^2)$</td></tr>
+        <tr><td>Cyclic shift (row)</td><td>MCX</td><td>6</td><td>$O(n^2)$</td></tr>
+        <tr><td><strong>Total qubits</strong></td><td>—</td><td><strong>14</strong></td><td>$8 + 2\log_2 N$</td></tr>
       </tbody>
     </table>
   </section>
@@ -195,7 +207,7 @@ Normalised to [0, 255] for display and comparison.</div>
     </p>
 
     <div class="figure-card scroll-fade">
-      <img src="../assets/images/edge_detection.png" alt="Edge Detection Results"
+      <img src="../assets/images/edges.png" alt="Edge Detection Results"
            onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
       <div style="display:none;padding:2rem;text-align:center;color:var(--muted);font-size:0.9rem;">
         ⬡ Run <code>python src/generate_figures.py</code> to generate result figures.
@@ -204,7 +216,7 @@ Normalised to [0, 255] for display and comparison.</div>
         <strong>Figure 1.</strong> From left: original image, quantum horizontal edge map,
         quantum vertical edge map, combined quantum edge magnitude, classical Sobel,
         classical Laplacian-of-Gaussian. The quantum output visually tracks both classical
-        methods, confirmed by Pearson correlation coefficients above 0.6.
+        methods, confirmed by Pearson correlations above 0.6.
       </p>
     </div>
 
@@ -227,12 +239,12 @@ Normalised to [0, 255] for display and comparison.</div>
       <div class="metric-card black">
         <div class="metric-label">Image Support</div>
         <div class="metric-value">Any</div>
-        <div class="metric-sub">auto-resized to 2ⁿ × 2ⁿ</div>
+        <div class="metric-sub">auto-resized to $2^n \times 2^n$</div>
       </div>
       <div class="metric-card green">
         <div class="metric-label">Gate Complexity</div>
         <div class="metric-value">O(n)</div>
-        <div class="metric-sub">shift circuit; n = log₂N</div>
+        <div class="metric-sub">shift circuit; $n = \log_2 N$</div>
       </div>
       <div class="metric-card green">
         <div class="metric-label">Classical Baseline</div>
@@ -249,9 +261,9 @@ Normalised to [0, 255] for display and comparison.</div>
       <tbody>
         <tr>
           <td>Complexity</td>
-          <td class="good">O(n) shift gates</td>
-          <td>O(N·9)</td>
-          <td>O(N·25)</td>
+          <td class="good">$O(n)$ shift gates</td>
+          <td>$O(N \cdot 9)$</td>
+          <td>$O(N \cdot 25)$</td>
         </tr>
         <tr>
           <td>Kernel-free</td>
@@ -315,7 +327,7 @@ Normalised to [0, 255] for display and comparison.</div>
       then runs three statevector simulations (original, column-shifted, row-shifted).
     </p>
 
-<pre><code><span class="token-kw">import</span> edge_detection
+<pre data-lang="python"><code><span class="token-kw">import</span> edge_detection
 <span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
 <span class="token-kw">from</span> PIL <span class="token-kw">import</span> Image
 
@@ -324,47 +336,46 @@ img = np.array(Image.<span class="token-fn">open</span>(<span class="token-str">
 result = edge_detection.<span class="token-fn">run</span>(img)
 
 <span class="token-cmt"># result keys:</span>
-<span class="token-cmt">#   original       — input image (resized to 2ⁿ × 2ⁿ, float64)</span>
-<span class="token-cmt">#   quantum_h      — horizontal edge map (column-wise pixel differences)</span>
-<span class="token-cmt">#   quantum_v      — vertical edge map (row-wise pixel differences)</span>
-<span class="token-cmt">#   quantum        — combined magnitude: √(h² + v²), normalised [0, 255]</span>
+<span class="token-cmt">#   original       — input image (resized to 2ⁿ×2ⁿ, float64)</span>
+<span class="token-cmt">#   quantum_h      — horizontal edge map (column-wise differences)</span>
+<span class="token-cmt">#   quantum_v      — vertical edge map   (row-wise differences)</span>
+<span class="token-cmt">#   quantum        — combined magnitude: √(h²+v²), normalised [0,255]</span>
 <span class="token-cmt">#   sobel          — classical Sobel gradient magnitude</span>
 <span class="token-cmt">#   laplacian      — classical Laplacian-of-Gaussian edge map</span>
-<span class="token-cmt">#   corr_sobel     — Pearson correlation: quantum vs Sobel</span>
-<span class="token-cmt">#   corr_laplacian — Pearson correlation: quantum vs LoG</span>
-<span class="token-cmt">#   mse_vs_sobel   — mean squared error vs Sobel</span>
+<span class="token-cmt">#   corr_sobel     — Pearson r: quantum vs Sobel</span>
+<span class="token-cmt">#   corr_laplacian — Pearson r: quantum vs LoG</span>
 <span class="token-cmt">#   qubits         — total qubits in circuit</span>
 <span class="token-cmt">#   elapsed        — runtime in seconds</span>
 
-<span class="token-fn">print</span>(<span class="token-str">f"Corr vs Sobel:     {result['corr_sobel']:.4f}"</span>)
-<span class="token-fn">print</span>(<span class="token-str">f"Corr vs Laplacian: {result['corr_laplacian']:.4f}"</span>)
-<span class="token-fn">print</span>(<span class="token-str">f"Qubits used:       {result['qubits']}"</span>)
-<span class="token-fn">print</span>(<span class="token-str">f"Image size:        {result['image_size']}"</span>)</code></pre>
+<span class="token-fn">print</span>(<span class="token-str">f"Corr vs Sobel:     {result[<span class="token-str">'corr_sobel'</span>]:.4f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Corr vs Laplacian: {result[<span class="token-str">'corr_laplacian'</span>]:.4f}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Qubits used:       {result[<span class="token-str">'qubits'</span>]}"</span>)
+<span class="token-fn">print</span>(<span class="token-str">f"Image size:        {result[<span class="token-str">'image_size'</span>]}"</span>)</code></pre>
 
     <div class="two-col scroll-fade">
       <div>
-        <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Cyclic Shift — Core Subroutine</h3>
-<pre><code><span class="token-kw">def</span> <span class="token-fn">_cyclic_increment</span>(qc, reg):
+        <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Cyclic Shift — Core Subroutine</h3>
+<pre data-lang="python"><code><span class="token-kw">def</span> <span class="token-fn">_cyclic_increment</span>(qc, reg):
     <span class="token-cmt"># Quantum ripple-carry adder (+1 mod 2^k)</span>
     n = <span class="token-fn">len</span>(reg)
     <span class="token-kw">for</span> i <span class="token-kw">in</span> <span class="token-fn">range</span>(n - <span class="token-num">1</span>, -<span class="token-num">1</span>, -<span class="token-num">1</span>):
         <span class="token-kw">if</span> i == <span class="token-num">0</span>:
             qc.<span class="token-fn">x</span>(reg[<span class="token-num">0</span>])       <span class="token-cmt"># LSB always flips</span>
         <span class="token-kw">else</span>:
-            qc.<span class="token-fn">mcx</span>(reg[:i], reg[i])  <span class="token-cmt"># carry propagation</span></code></pre>
+            qc.<span class="token-fn">mcx</span>(reg[:i], reg[i])  <span class="token-cmt"># carry</span></code></pre>
       </div>
       <div>
-        <h3 style="font-size:1rem;font-weight:600;margin:2rem 0 1rem;">Running Both Axes</h3>
-<pre><code><span class="token-kw">def</span> <span class="token-fn">_run_shifted</span>(enc, axis):
+        <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Running Both Axes</h3>
+<pre data-lang="python"><code><span class="token-kw">def</span> <span class="token-fn">_run_shifted</span>(enc, axis):
     qc = enc.<span class="token-fn">build_circuit</span>()
     <span class="token-kw">if</span> axis == <span class="token-str">"col"</span>:
         start = enc.n_val + enc.n_row
-        reg = <span class="token-fn">list</span>(<span class="token-fn">range</span>(start,
-               start + enc.n_col))
-    <span class="token-kw">else</span>:  <span class="token-cmt"># row</span>
+        reg = <span class="token-fn">list</span>(<span class="token-fn">range</span>(
+            start, start + enc.n_col))
+    <span class="token-kw">else</span>:  <span class="token-cmt"># row axis</span>
         start = enc.n_val
-        reg = <span class="token-fn">list</span>(<span class="token-fn">range</span>(start,
-               start + enc.n_row))
+        reg = <span class="token-fn">list</span>(<span class="token-fn">range</span>(
+            start, start + enc.n_row))
     <span class="token-fn">_cyclic_increment</span>(qc, reg)
     sv = _SIM.<span class="token-fn">run</span>(<span class="token-fn">transpile</span>(qc, _SIM))
     <span class="token-kw">return</span> enc.<span class="token-fn">decode_statevector</span>(sv)</code></pre>
@@ -375,8 +386,9 @@ result = edge_detection.<span class="token-fn">run</span>(img)
       <span class="callout-icon">ℹ</span>
       <span>
         Images of any size are accepted. The NEQR encoder automatically pads to the nearest
-        power-of-2 square: e.g. a 100×120 image becomes 128×128. Qubit count grows logarithmically:
-        a 256×256 image uses 8 + 2·8 = 24 qubits, while a 1024×1024 image requires 28 qubits.
+        power-of-2 square: e.g. a $100 \times 120$ image becomes $128 \times 128$.
+        Qubit count grows logarithmically — a $256 \times 256$ image uses $8 + 2 \cdot 8 = 24$ qubits,
+        while a $1024 \times 1024$ image requires only 28 qubits.
       </span>
     </div>
 
@@ -416,14 +428,14 @@ result = edge_detection.<span class="token-fn">run</span>(img)
           <p>
             Edges carry the most perceptually salient information in an image.
             Classical edge detectors (Sobel, Canny, LoG) are computationally expensive
-            for high-resolution images — O(N·k) per frame. On gate-based quantum hardware,
-            the QHED approach reduces the per-pixel operator to O(log₂N) gates, making
+            for high-resolution images — $O(N \cdot k)$ per frame. On gate-based quantum hardware,
+            the QHED approach reduces the per-pixel operator to $O(\log_2 N)$ gates, making
             real-time quantum edge detection feasible at scale for future hardware.
           </p>
           <p>
-            Current simulation on classical hardware is limited to small images (8×8, 16×16)
-            due to the 2ⁿ statevector memory requirement. True quantum advantage is realised
-            on fault-tolerant hardware where statevector simulation is not the bottleneck.
+            Current simulation on classical hardware is limited to small images due to the
+            $2^n$ statevector memory requirement. True quantum advantage is realised on
+            fault-tolerant hardware where statevector simulation is not the bottleneck.
           </p>
         </div>
       </div>
@@ -432,15 +444,15 @@ result = edge_detection.<span class="token-fn">run</span>(img)
           <h4>Relation to Classical Operators</h4>
           <p>
             The quantum cyclic difference operator is equivalent to a circular convolution
-            with the kernel [1, −1] along each axis — a first-order finite difference.
-            Sobel uses a 3×3 kernel incorporating neighboring pixel weights for noise
-            robustness; the quantum version uses exact nearest-neighbor differences,
-            making it more sensitive to high-frequency detail but also to quantisation noise.
+            with the kernel $[1,\,-1]$ along each axis — a first-order finite difference.
+            Sobel uses a $3 \times 3$ kernel incorporating neighbouring pixel weights for noise
+            robustness; the quantum version uses exact nearest-neighbour differences,
+            making it more sensitive to high-frequency detail.
           </p>
           <p>
             On real quantum hardware (shot-based measurement), the result would need
             statistical reconstruction from many measurements. The statevector simulation
-            used here gives the exact quantum-mechanical result without measurement noise.
+            here gives the exact quantum-mechanical result without measurement noise.
           </p>
         </div>
       </div>
