@@ -347,7 +347,7 @@
       in a single result dictionary.
     </p>
 
-<pre data-lang="python"><code><span class="token-kw">import</span> edge_detection
+<pre data-lang="python" data-caption="Run quantum edge detection and inspect results"><code><span class="token-kw">import</span> edge_detection
 <span class="token-kw">import</span> numpy <span class="token-kw">as</span> np
 <span class="token-kw">from</span> PIL <span class="token-kw">import</span> Image
 
@@ -374,7 +374,7 @@ result = edge_detection.<span class="token-fn">run</span>(img)
     <div class="two-col scroll-fade">
       <div>
         <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Cyclic Shift Subroutine</h3>
-<pre data-lang="python"><code><span class="token-kw">def</span> <span class="token-fn">_cyclic_increment</span>(qc, reg):
+<pre data-lang="python" data-caption="Ripple-carry adder — cyclic increment"><code><span class="token-kw">def</span> <span class="token-fn">_cyclic_increment</span>(qc, reg):
     <span class="token-cmt"># Ripple-carry adder: |b⟩ → |(b+1) mod 2^k⟩</span>
     n = <span class="token-fn">len</span>(reg)
     <span class="token-kw">for</span> i <span class="token-kw">in</span> <span class="token-fn">range</span>(n - <span class="token-num">1</span>, -<span class="token-num">1</span>, -<span class="token-num">1</span>):
@@ -385,7 +385,7 @@ result = edge_detection.<span class="token-fn">run</span>(img)
       </div>
       <div>
         <h3 style="font-size:1rem;font-weight:600;margin:0 0 1rem;">Running Both Axes</h3>
-<pre data-lang="python"><code><span class="token-kw">def</span> <span class="token-fn">_run_shifted</span>(enc, axis):
+<pre data-lang="python" data-caption="Simulate original + shifted statevectors"><code><span class="token-kw">def</span> <span class="token-fn">_run_shifted</span>(enc, axis):
     qc = enc.<span class="token-fn">build_circuit</span>()
     <span class="token-kw">if</span> axis == <span class="token-str">"col"</span>:
         start = enc.n_val + enc.n_row
