@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib.patches import FancyBboxPatch
 from PIL import Image as PILImage
 
 import inversion
@@ -17,25 +18,39 @@ from encoding import preprocess, normalise
 OUT = os.path.join(os.path.dirname(__file__), "..", "assets", "images")
 os.makedirs(OUT, exist_ok=True)
 
+# ── Colour palette ────────────────────────────────────────────────────────────
 BG    = "#ffffff"
 FG    = "#0a0a0a"
 ACC1  = "#1a1aff"
-ACC2  = "#d10000"
-ACC3  = "#007a3d"
-MID   = "#555555"
-LGRAY = "#f0f0f0"
+ACC2  = "#c00000"
+ACC3  = "#005c2e"
+MID   = "#6b6b63"
+LGRAY = "#f4f4f2"
 FONT  = "DejaVu Sans"
+
+# ── Qiskit circuit style (publication quality) ────────────────────────────────
+CIRCUIT_STYLE = {
+    "name":              "clifford",
+    "backgroundcolor":   "#ffffff",
+    "linecolor":         "#1a1a2e",
+    "textcolor":         "#1a1a2e",
+    "gatefacecolor":     "#eaeaff",
+    "gateedgecolor":     "#1a1aff",
+    "controllercolor":   "#1a1aff",
+    "measurebg":         "#e6f5ed",
+    "cregbundle":        True,
+}
 
 
 def _ax(ax, title="", xlabel="", ylabel="", color=FG):
     ax.set_facecolor(LGRAY)
-    ax.set_title(title, fontsize=8.5, fontweight="bold", color=color, pad=5, fontfamily=FONT)
-    ax.set_xlabel(xlabel, fontsize=7, color=MID)
-    ax.set_ylabel(ylabel, fontsize=7, color=MID)
+    ax.set_title(title, fontsize=8.5, fontweight="bold", color=color, pad=6, fontfamily=FONT)
+    ax.set_xlabel(xlabel, fontsize=7, color=MID, labelpad=4)
+    ax.set_ylabel(ylabel, fontsize=7, color=MID, labelpad=4)
     ax.tick_params(colors=MID, labelsize=6.5)
     for sp in ax.spines.values():
-        sp.set_edgecolor("#cccccc")
-        sp.set_linewidth(0.8)
+        sp.set_edgecolor("#d0d0c8")
+        sp.set_linewidth(0.7)
 
 
 def _imshow(ax, img, cmap="gray", title="", color=FG):
@@ -283,6 +298,138 @@ def export_overview(inv_res, match_results, edge_res):
     print(f"  saved {path}")
 
 
+# ── Circuit diagram generation ────────────────────────────────────────────────
+
+def export_circuit_inversion():
+    """
+    2×2 test image → 10-qubit NEQR + Pauli-X inversion circuit.
+    One bright pixel keeps the gate count small and the diagram readable.
+    """
+    from qiskit import QuantumCircuit, QuantumRegister
+    from encoding import NEQREncoder
+
+    img = np.array([[0.0, 0.0], [0.0, 255.0]])
+    enc = NEQREncoder(img)
+    base = enc.build_circuit()
+    qc = QuantumCircuit(*base.qregs)
+    qc.compose(base, inplace=True)
+    qc.barrier()
+    for q in range(enc.n_val):
+        qc.x(q)
+
+    fig = qc.draw("mpl", style=CIRCUIT_STYLE, fold=-1,
+                  initial_state=False, scale=0.78, idle_wires=False)
+    fig.patch.set_facecolor(BG)
+    _annotate_circuit(fig,
+        title="Quantum Image Inversion Circuit",
+        subtitle="NEQR encoding (2×2) + Pauli-X inversion on all 8 value qubits",
+        caption=("val[0..7]: 8-qubit value register  ·  row[0]: row position  ·  "
+                 "col[0]: column position  ·  Total: 10 qubits  ·  Inversion: 8 X gates (O(1))"))
+    path = os.path.join(OUT, "circuit_inversion.png")
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor=BG, edgecolor="none")
+    plt.close(fig)
+    print(f"  saved {path}")
+
+
+def export_circuit_matching():
+    """
+    SWAP-test circuit with custom amplitude-encoding boxes.
+    1 ancilla + 3 image-A qubits + 3 image-B qubits = 7 qubits.
+    """
+    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+    from qiskit.circuit import Gate
+
+    anc = QuantumRegister(1, "anc")
+    a   = QuantumRegister(3, "A")
+    b   = QuantumRegister(3, "B")
+    cr  = ClassicalRegister(1, "m")
+    qc  = QuantumCircuit(anc, a, b, cr)
+
+    enc_a = Gate("|ψ_A⟩", 3, [])
+    enc_b = Gate("|ψ_B⟩", 3, [])
+    qc.append(enc_a, list(a))
+    qc.append(enc_b, list(b))
+    qc.barrier()
+    qc.h(anc)
+    for i in range(3):
+        qc.cswap(anc[0], a[i], b[i])
+    qc.h(anc)
+    qc.measure(anc, cr)
+
+    fig = qc.draw("mpl", style=CIRCUIT_STYLE, fold=-1,
+                  initial_state=False, scale=0.82, idle_wires=False)
+    fig.patch.set_facecolor(BG)
+    _annotate_circuit(fig,
+        title="Quantum Image Matching — SWAP Test Circuit",
+        subtitle="Amplitude encoding + CSWAP-based fidelity estimation",
+        caption=("anc: ancilla qubit  ·  A[0..2]: image A (amplitude-encoded)  ·  "
+                 "B[0..2]: image B  ·  P(anc=0) = ½ + ½|⟨ψ_A|ψ_B⟩|²  ·  Total: 7 qubits"))
+    path = os.path.join(OUT, "circuit_matching.png")
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor=BG, edgecolor="none")
+    plt.close(fig)
+    print(f"  saved {path}")
+
+
+def export_circuit_edge():
+    """
+    12-qubit edge-detection circuit: custom NEQR block + explicit cyclic shift.
+    Row/col registers are 2 qubits each (4×4 image), showing the CX + X shift.
+    """
+    from qiskit import QuantumCircuit, QuantumRegister
+    from qiskit.circuit import Gate
+
+    val = QuantumRegister(8, "val")
+    row = QuantumRegister(2, "row")
+    col = QuantumRegister(2, "col")
+    qc  = QuantumCircuit(val, row, col)
+
+    for q in row:
+        qc.h(q)
+    for q in col:
+        qc.h(q)
+
+    neqr = Gate("NEQR\nEncode", 12, [])
+    qc.append(neqr, list(val) + list(row) + list(col))
+    qc.barrier()
+
+    # Quantum cyclic increment on col register (2 qubits):
+    # MCX(col[0], col[1]) then X(col[0])  →  |b₁b₀⟩ → |(b₁b₀ + 1) mod 4⟩
+    qc.cx(col[0], col[1])
+    qc.x(col[0])
+
+    fig = qc.draw("mpl", style=CIRCUIT_STYLE, fold=-1,
+                  initial_state=False, scale=0.82, idle_wires=False)
+    fig.patch.set_facecolor(BG)
+    _annotate_circuit(fig,
+        title="Quantum Edge Detection Circuit",
+        subtitle="NEQR encoding + quantum cyclic shift on column position register",
+        caption=("val[0..7]: value register  ·  row[0..1]: row position  ·  "
+                 "col[0..1]: column position  ·  Cyclic shift: CX + X = |b₁b₀+1 mod 4⟩  ·  Total: 12 qubits"))
+    path = os.path.join(OUT, "circuit_edge.png")
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor=BG, edgecolor="none")
+    plt.close(fig)
+    print(f"  saved {path}")
+
+
+def _annotate_circuit(fig, title="", subtitle="", caption=""):
+    """Add a title, subtitle and caption band to a Qiskit circuit figure."""
+    fig.set_size_inches(fig.get_size_inches()[0], fig.get_size_inches()[1] + 1.4)
+
+    # Title band at top
+    fig.text(0.5, 0.98, title,
+             ha="center", va="top", fontsize=12, fontweight="bold",
+             color=FG, fontfamily=FONT, transform=fig.transFigure)
+    fig.text(0.5, 0.945, subtitle,
+             ha="center", va="top", fontsize=8.5, color=MID,
+             fontfamily=FONT, transform=fig.transFigure)
+    # Caption band at bottom
+    fig.text(0.5, 0.012, caption,
+             ha="center", va="bottom", fontsize=7.5, color=MID,
+             fontfamily=FONT, transform=fig.transFigure,
+             style="italic")
+    fig.subplots_adjust(top=0.90, bottom=0.08)
+
+
 if __name__ == "__main__":
     print("Generating test images...")
     imgs = make_test_images(size=8)
@@ -294,4 +441,8 @@ if __name__ == "__main__":
     edge_res  = export_edges(imgs)
     print("Generating overview...")
     export_overview(inv_res, match_res, edge_res)
+    print("Generating circuit diagrams...")
+    export_circuit_inversion()
+    export_circuit_matching()
+    export_circuit_edge()
     print("Done.")
