@@ -10,6 +10,9 @@
 
 <nav>
   <div class="nav-brand">⬡ <span>quantum</span>-image-processing</div>
+  <button class="nav-hamburger" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
   <ul class="nav-links">
     <li><a href="#overview" class="active">Overview</a></li>
     <li><a href="#algorithms">Algorithms</a></li>
@@ -43,9 +46,9 @@
     <h3>Table of Contents</h3>
     <ol>
       <li><a href="#algorithms">Algorithm Overview</a></li>
-      <li><a href="docs/inversion/index.html">Image Inversion</a></li>
-      <li><a href="docs/matching/index.html">Image Matching</a></li>
-      <li><a href="docs/edge-detection/index.html">Edge Detection</a></li>
+      <li><a href="inversion/index.html">Image Inversion</a></li>
+      <li><a href="matching/index.html">Image Matching</a></li>
+      <li><a href="edge-detection/index.html">Edge Detection</a></li>
       <li><a href="#metrics">Benchmark Metrics</a></li>
       <li><a href="#structure">Project Structure</a></li>
       <li><a href="#references">References</a></li>
@@ -109,22 +112,22 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem;">
-      <a href="docs/inversion/index.html" style="text-decoration:none;">
+    <div class="algo-cards scroll-fade">
+      <a href="inversion/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>01 — Image Inversion</h4>
           <p>Pauli-X gates on the value register flip every pixel in O(1) extra gates.</p>
           <span>Read docs →</span>
         </div>
       </a>
-      <a href="docs/matching/index.html" style="text-decoration:none;">
+      <a href="matching/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>02 — Image Matching</h4>
           <p>SWAP test estimates quantum fidelity between two amplitude-encoded images.</p>
           <span>Read docs →</span>
         </div>
       </a>
-      <a href="docs/edge-detection/index.html" style="text-decoration:none;">
+      <a href="edge-detection/index.html" style="text-decoration:none;">
         <div class="source-card">
           <h4>03 — Edge Detection</h4>
           <p>Quantum cyclic shift on position register computes pixel differences in superposition.</p>

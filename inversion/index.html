@@ -4,14 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantum Image Inversion — Quantum Image Processing</title>
-<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
 
 <nav>
-  <div class="nav-brand">⬡ <a href="../../index.html" style="color:inherit;text-decoration:none;"><span>quantum</span>-image-processing</a></div>
+  <div class="nav-brand">⬡ <a href="../index.html" style="color:inherit;text-decoration:none;"><span>quantum</span>-image-processing</a></div>
+  <button class="nav-hamburger" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
   <ul class="nav-links">
-    <li><a href="../../index.html">Overview</a></li>
+    <li><a href="../index.html">Overview</a></li>
     <li><a href="#algorithm" class="active">Inversion</a></li>
     <li><a href="../matching/index.html">Matching</a></li>
     <li><a href="../edge-detection/index.html">Edge Detection</a></li>
@@ -97,7 +100,7 @@ Additional gate complexity: O(1)  — exactly 8 X gates</div>
     </div>
 
     <div class="figure-card scroll-fade">
-      <img src="../../assets/images/inversion.png" alt="Inversion Results">
+      <img src="../assets/images/inversion.png" alt="Inversion Results">
       <p class="figure-caption">
         <strong>Figure 1.</strong> From left: original image, quantum-inverted, classical-inverted,
         absolute pixel difference (all zeros — perfect match), pixel distribution histograms,
@@ -206,6 +209,6 @@ result = inversion.<span class="token-fn">run</span>(img)
 <footer>
   quantum-image-processing · Algorithm 01: Inversion · Qiskit 2.4
 </footer>
-<script src="../../assets/js/main.js"></script>
+<script src="../assets/js/main.js"></script>
 </body>
 </html>
